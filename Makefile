@@ -61,8 +61,8 @@ ${LIBDIR}/libgeos.dylib: ${CURDIR}/geos
 	# patches libtool generated file before making, since it contains an error: it should add the "bind_at_load" flag to the linker only on OSX 10.0 -> 10.3,
 	# but it would apply it even on OSX > 10.9 (and it is incompatible with -fembed-bitcode)
 
-${CURDIR}/geos:
-	svn export --non-interactive --trust-server-cert --force https://svn.osgeo.org/geos/tags/3.4.2 geos
+# ${CURDIR}/geos:
+	# svn export --non-interactive --trust-server-cert --force https://svn.osgeo.org/geos/tags/3.5.0 geos
 	
 clean:
 	rm -rf build geos proj spatialite sqlite3 include lib
