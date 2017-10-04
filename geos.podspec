@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
   s.summary	= "GEOS (Geometry Engine - Open Source) is a C++ port of the Java Topology Suite (JTS)."
   s.homepage	= "http://trac.osgeo.org/geos/"
   s.license	= { :type => "GNU LGPL 2.1",
-		    :file => "COPYING" }
+		    :file => "geos/COPYING" }
   s.author	= { "Yury Bychkov" => "me@yury.ca",
 		    "Martin Davis" => "mbdavis@refractions.net" }
   s.source	= { :git => "https://github.com/andreacremaschi/geos-fat-dynamic-bitcode.git", :tag => '3.5.0' }
