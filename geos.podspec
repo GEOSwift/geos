@@ -16,6 +16,7 @@ Pod::Spec.new do |s|
   s.compiler_flags = '-D_SYSTEMCONFIGURATION_H -D__MOBILECORESERVICES__ -D__CORESERVICES__'
 
   s.prepare_command = <<-CMD
+    git submodule update --init --recursive
     make
   CMD
 
