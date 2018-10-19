@@ -41,9 +41,12 @@ system you're developing on.
 
 ## History
 
-A previous instance of the 3.5.0 tag obtained the GEOS source from SVN, which has since been
-disabled. This tag is a re-publish of the 3.5.0 tag which points to git and is patterned off of the
-3.7.0 tag.
+Starting with tag 3.7.0 in this repo, the Podspec here should match the one in the CocoaPods specs
+repo. This has not always been the case. For example, the 3.5.0 tag in this repo does not actually
+represent what you get if you install 3.5.0 from CocoaPods. Alas, this situation should be remedied
+as we move forward.
+
+Version 3.7.0 is based on the actually-published 3.5.0 podspec.
 
 The version numbers in this repo are designed to match the corresponding version numbers in GEOS
 itself.

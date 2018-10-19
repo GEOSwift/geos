@@ -12,7 +12,7 @@ type -P glibtoolize &>/dev/null || alias glibtoolize 'xcrun glibtoolize'
 
 sh autogen.sh
 ./configure
-./tools/svn_repo_revision.sh
+./tools/repo_revision.sh
 
 sed -i '' 's;/\* #undef HAVE_INT64_T_64 \*/;#define HAVE_INT64_T_64 1;' include/geos/platform.h
 sed -i '' 's;#define HAVE_LONG_LONG_INT_64 1;/\* #undef HAVE_LONG_LONG_INT_64 \*/;' include/geos/platform.h
