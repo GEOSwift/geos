@@ -15,8 +15,7 @@ Pod::Spec.new do |s|
     git: 'https://github.com/GEOSwift/geos.git',
     tag: s.version
   }
-  s.ios.deployment_target = '8.0'
-  s.osx.deployment_target = '10.7'
+  s.platforms = { :ios => "8.0", :osx => "10.7", :tvos => "9.0" }
   s.preserve_paths = 'geos/**/*.{h,inl}'
   s.source_files = 'geos/{include,src,capi}/**/*.cpp', 'geos/capi/geos_c.h', 'geos/include/geos/export.h'
   s.exclude_files = 'geos/**/*tests*'

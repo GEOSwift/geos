@@ -1,5 +1,9 @@
 # GEOS
 
+[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/geos.svg)](https://img.shields.io/cocoapods/v/geos.svg)
+[![Carthage Compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+[![Platform](https://img.shields.io/cocoapods/p/geos.svg?style=flat)](https://github.com/GEOSwift/geos)
+
 ## Supported Platforms
 - iOS 8.0+
 - macOS 10.7+
