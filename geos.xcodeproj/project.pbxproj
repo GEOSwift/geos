@@ -901,10 +901,34 @@
 		E2658617225C6320004004C9 /* MCIndexSegmentSetMutualIntersector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AA225C5A36004004C9 /* MCIndexSegmentSetMutualIntersector.cpp */; };
 		E2658618225C6320004004C9 /* NodedSegmentString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AB225C5A36004004C9 /* NodedSegmentString.cpp */; };
 		E2658619225C6320004004C9 /* SimpleNoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AD225C5A36004004C9 /* SimpleNoder.cpp */; };
-		E265861B225C6675004004C9 /* geos_c.h.in in Headers */ = {isa = PBXBuildFile; fileRef = E26578EC225C5A34004004C9 /* geos_c.h.in */; settings = {ATTRIBUTES = (Public, ); }; };
-		E265861C225C66A2004004C9 /* geos_c.h.in in Headers */ = {isa = PBXBuildFile; fileRef = E26578EC225C5A34004004C9 /* geos_c.h.in */; settings = {ATTRIBUTES = (Public, ); }; };
-		E265861D225C66B7004004C9 /* geos_c.h.in in Headers */ = {isa = PBXBuildFile; fileRef = E26578EC225C5A34004004C9 /* geos_c.h.in */; settings = {ATTRIBUTES = (Public, ); }; };
+		E2871EA1225C72A10032A28B /* geos_c.h in Headers */ = {isa = PBXBuildFile; fileRef = E26578F0225C5A34004004C9 /* geos_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E2871EA2225C72B20032A28B /* geos_c.h in Headers */ = {isa = PBXBuildFile; fileRef = E26578F0225C5A34004004C9 /* geos_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E2871EA3225C72B80032A28B /* geos_c.h in Headers */ = {isa = PBXBuildFile; fileRef = E26578F0225C5A34004004C9 /* geos_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E2871EA4225C768C0032A28B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E26568E3225C57D5004004C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E2871E9D225C71BD0032A28B;
+			remoteInfo = Preprocessor;
+		};
+		E2871EA6225C76920032A28B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E26568E3225C57D5004004C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E2871E9D225C71BD0032A28B;
+			remoteInfo = Preprocessor;
+		};
+		E2871EA8225C76990032A28B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E26568E3225C57D5004004C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E2871E9D225C71BD0032A28B;
+			remoteInfo = Preprocessor;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		E26568EC225C57D5004004C9 /* geos.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = geos.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -6601,7 +6625,7 @@
 			files = (
 				E26568F1225C57D5004004C9 /* geos.h in Headers */,
 				E26580AE225C5A4A004004C9 /* export.h in Headers */,
-				E265861B225C6675004004C9 /* geos_c.h.in in Headers */,
+				E2871EA1225C72A10032A28B /* geos_c.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6611,7 +6635,7 @@
 			files = (
 				E265831A225C607C004004C9 /* geos.h in Headers */,
 				E265831C225C608E004004C9 /* export.h in Headers */,
-				E265861C225C66A2004004C9 /* geos_c.h.in in Headers */,
+				E2871EA2225C72B20032A28B /* geos_c.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6621,11 +6645,28 @@
 			files = (
 				E26584F0225C6283004004C9 /* export.h in Headers */,
 				E26584F1225C6289004004C9 /* geos.h in Headers */,
-				E265861D225C66B7004004C9 /* geos_c.h.in in Headers */,
+				E2871EA3225C72B80032A28B /* geos_c.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
+
+/* Begin PBXLegacyTarget section */
+		E2871E9D225C71BD0032A28B /* Preprocessor */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = ./prepare.sh;
+			buildConfigurationList = E2871E9E225C71BD0032A28B /* Build configuration list for PBXLegacyTarget "Preprocessor" */;
+			buildPhases = (
+			);
+			buildToolPath = /bin/bash;
+			buildWorkingDirectory = "$(SRCROOT)";
+			dependencies = (
+			);
+			name = Preprocessor;
+			passBuildSettingsInEnvironment = 0;
+			productName = Preprocessor;
+		};
+/* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
 		E26568EB225C57D5004004C9 /* geos iOS */ = {
@@ -6640,6 +6681,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E2871EA5225C768C0032A28B /* PBXTargetDependency */,
 			);
 			name = "geos iOS";
 			productName = geos;
@@ -6658,6 +6700,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E2871EA7225C76920032A28B /* PBXTargetDependency */,
 			);
 			name = "geos macOS";
 			productName = geos;
@@ -6676,6 +6719,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E2871EA9225C76990032A28B /* PBXTargetDependency */,
 			);
 			name = "geos tvOS";
 			productName = geos;
@@ -6700,6 +6744,9 @@
 					E26584E6225C6204004004C9 = {
 						CreatedOnToolsVersion = 10.2;
 					};
+					E2871E9D225C71BD0032A28B = {
+						CreatedOnToolsVersion = 10.2;
+					};
 				};
 			};
 			buildConfigurationList = E26568E6225C57D5004004C9 /* Build configuration list for PBXProject "geos" */;
@@ -6714,6 +6761,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				E2871E9D225C71BD0032A28B /* Preprocessor */,
 				E26568EB225C57D5004004C9 /* geos iOS */,
 				E2658311225C5FAF004004C9 /* geos macOS */,
 				E26584E6225C6204004004C9 /* geos tvOS */,
@@ -7657,6 +7705,24 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		E2871EA5225C768C0032A28B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E2871E9D225C71BD0032A28B /* Preprocessor */;
+			targetProxy = E2871EA4225C768C0032A28B /* PBXContainerItemProxy */;
+		};
+		E2871EA7225C76920032A28B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E2871E9D225C71BD0032A28B /* Preprocessor */;
+			targetProxy = E2871EA6225C76920032A28B /* PBXContainerItemProxy */;
+		};
+		E2871EA9225C76990032A28B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E2871E9D225C71BD0032A28B /* Preprocessor */;
+			targetProxy = E2871EA8225C76990032A28B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		E26568F2225C57D5004004C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -7960,6 +8026,31 @@
 			};
 			name = Release;
 		};
+		E2871E9F225C71BD0032A28B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUGGING_SYMBOLS = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		E2871EA0225C71BD0032A28B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -7995,6 +8086,15 @@
 			buildConfigurations = (
 				E26584ED225C6204004004C9 /* Debug */,
 				E26584EE225C6204004004C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E2871E9E225C71BD0032A28B /* Build configuration list for PBXLegacyTarget "Preprocessor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E2871E9F225C71BD0032A28B /* Debug */,
+				E2871EA0225C71BD0032A28B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
