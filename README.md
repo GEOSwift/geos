@@ -1,4 +1,11 @@
-# GEOS Podspec
+# GEOS
+
+## Supported Platforms
+- iOS 8.0+
+- macOS 10.7+
+- tvOS 9.0+
+
+## Podspec
 
 GEOS is an open source C++ library for working with geospatial geometry. Learn more on its
 [homepage](http://trac.osgeo.org/geos). This repo hosts a [CocoaPods](https://cocoapods.org/)
@@ -38,6 +45,13 @@ repo](https://git.osgeo.org/gitea/geos/geos) via git submodules.
 system you're developing on.
 3. Patches a few files to make things work.
 4. The resulting source and header files are built by Xcode when you build your project.
+
+
+## Carthage
+Add the following to your Cartfile:
+```
+github "GEOSwift/geos" ~> 3.7.0
+```
 
 ## History
 
