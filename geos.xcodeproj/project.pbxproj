@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		E26568F1225C57D5004004C9 /* geos.h in Headers */ = {isa = PBXBuildFile; fileRef = E26568EF225C57D5004004C9 /* geos.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E26580AE225C5A4A004004C9 /* export.h in Headers */ = {isa = PBXBuildFile; fileRef = E26579A7225C5A35004004C9 /* export.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E26580AF225C5AA8004004C9 /* geos_c.h in Headers */ = {isa = PBXBuildFile; fileRef = E26578F0225C5A34004004C9 /* geos_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E26580B0225C5AEE004004C9 /* geos_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26578ED225C5A34004004C9 /* geos_c.cpp */; };
 		E26580B1225C5AEE004004C9 /* geos_ts_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26578EE225C5A34004004C9 /* geos_ts_c.cpp */; };
 		E26580B2225C5B27004004C9 /* NodeMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2657D9C225C5A36004004C9 /* NodeMap.cpp */; };
@@ -307,7 +306,6 @@
 		E26581D6225C5C5C004004C9 /* NodedSegmentString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AB225C5A36004004C9 /* NodedSegmentString.cpp */; };
 		E26581D7225C5C5C004004C9 /* SimpleNoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AD225C5A36004004C9 /* SimpleNoder.cpp */; };
 		E265831A225C607C004004C9 /* geos.h in Headers */ = {isa = PBXBuildFile; fileRef = E26568EF225C57D5004004C9 /* geos.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E265831B225C6084004004C9 /* geos_c.h in Headers */ = {isa = PBXBuildFile; fileRef = E26578F0225C5A34004004C9 /* geos_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E265831C225C608E004004C9 /* export.h in Headers */ = {isa = PBXBuildFile; fileRef = E26579A7225C5A35004004C9 /* export.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E265831D225C60FE004004C9 /* geos_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26578ED225C5A34004004C9 /* geos_c.cpp */; };
 		E265831E225C60FE004004C9 /* geos_ts_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26578EE225C5A34004004C9 /* geos_ts_c.cpp */; };
@@ -605,7 +603,6 @@
 		E26584DF225C6104004004C9 /* MCIndexSegmentSetMutualIntersector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AA225C5A36004004C9 /* MCIndexSegmentSetMutualIntersector.cpp */; };
 		E26584E0225C6104004004C9 /* NodedSegmentString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AB225C5A36004004C9 /* NodedSegmentString.cpp */; };
 		E26584E1225C6104004004C9 /* SimpleNoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AD225C5A36004004C9 /* SimpleNoder.cpp */; };
-		E26584EF225C6277004004C9 /* geos_c.h in Headers */ = {isa = PBXBuildFile; fileRef = E26578F0225C5A34004004C9 /* geos_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E26584F0225C6283004004C9 /* export.h in Headers */ = {isa = PBXBuildFile; fileRef = E26579A7225C5A35004004C9 /* export.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E26584F1225C6289004004C9 /* geos.h in Headers */ = {isa = PBXBuildFile; fileRef = E26568EF225C57D5004004C9 /* geos.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E26584F2225C629F004004C9 /* geos_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26578ED225C5A34004004C9 /* geos_c.cpp */; };
@@ -904,6 +901,9 @@
 		E2658617225C6320004004C9 /* MCIndexSegmentSetMutualIntersector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AA225C5A36004004C9 /* MCIndexSegmentSetMutualIntersector.cpp */; };
 		E2658618225C6320004004C9 /* NodedSegmentString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AB225C5A36004004C9 /* NodedSegmentString.cpp */; };
 		E2658619225C6320004004C9 /* SimpleNoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E26580AD225C5A36004004C9 /* SimpleNoder.cpp */; };
+		E265861B225C6675004004C9 /* geos_c.h.in in Headers */ = {isa = PBXBuildFile; fileRef = E26578EC225C5A34004004C9 /* geos_c.h.in */; settings = {ATTRIBUTES = (Public, ); }; };
+		E265861C225C66A2004004C9 /* geos_c.h.in in Headers */ = {isa = PBXBuildFile; fileRef = E26578EC225C5A34004004C9 /* geos_c.h.in */; settings = {ATTRIBUTES = (Public, ); }; };
+		E265861D225C66B7004004C9 /* geos_c.h.in in Headers */ = {isa = PBXBuildFile; fileRef = E26578EC225C5A34004004C9 /* geos_c.h.in */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -6601,7 +6601,7 @@
 			files = (
 				E26568F1225C57D5004004C9 /* geos.h in Headers */,
 				E26580AE225C5A4A004004C9 /* export.h in Headers */,
-				E26580AF225C5AA8004004C9 /* geos_c.h in Headers */,
+				E265861B225C6675004004C9 /* geos_c.h.in in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6610,8 +6610,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				E265831A225C607C004004C9 /* geos.h in Headers */,
-				E265831B225C6084004004C9 /* geos_c.h in Headers */,
 				E265831C225C608E004004C9 /* export.h in Headers */,
+				E265861C225C66A2004004C9 /* geos_c.h.in in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6619,9 +6619,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E26584EF225C6277004004C9 /* geos_c.h in Headers */,
 				E26584F0225C6283004004C9 /* export.h in Headers */,
 				E26584F1225C6289004004C9 /* geos.h in Headers */,
+				E265861D225C66B7004004C9 /* geos_c.h.in in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

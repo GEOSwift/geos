@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E2658311225C5FAF004004C9"
-               BuildableName = "geos_macOS.framework"
+               BuildableName = "geos.framework"
                BlueprintName = "geos macOS"
                ReferencedContainer = "container:geos.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E2658311225C5FAF004004C9"
-            BuildableName = "geos_macOS.framework"
+            BuildableName = "geos.framework"
             BlueprintName = "geos macOS"
             ReferencedContainer = "container:geos.xcodeproj">
          </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E2658311225C5FAF004004C9"
-            BuildableName = "geos_macOS.framework"
+            BuildableName = "geos.framework"
             BlueprintName = "geos macOS"
             ReferencedContainer = "container:geos.xcodeproj">
          </BuildableReference>
