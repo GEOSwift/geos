@@ -6658,7 +6658,7 @@
 			buildConfigurationList = E2871E9E225C71BD0032A28B /* Build configuration list for PBXLegacyTarget "Preprocessor" */;
 			buildPhases = (
 			);
-			buildToolPath = /bin/bash;
+			buildToolPath = /bin/sh;
 			buildWorkingDirectory = "$(SRCROOT)";
 			dependencies = (
 			);
