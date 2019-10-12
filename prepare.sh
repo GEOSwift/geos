@@ -2,7 +2,10 @@
 
 set -e
 
-git submodule update --init --recursive
+if git rev-parse 2> /dev/null; [ $? == 0 ]; then
+	git submodule update --init --recursive
+fi
+
 cd geos
 
 type -P autoconf &>/dev/null || alias autoconf 'xcrun autoconf'
