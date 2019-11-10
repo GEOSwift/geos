@@ -1,2 +1,16 @@
-*.xcuserstate
+# Mac
+
+.DS_Store
+
+# Xcode
+
 xcuserdata
+
+# Carthage
+
+Carthage/Checkouts
+Carthage/Build
+
+# Swift Package Manager
+
+.build/

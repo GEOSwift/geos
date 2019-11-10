@@ -1,3 +1,0 @@
-[submodule "geos"]
-	path = geos
-	url = https://git.osgeo.org/gitea/geos/geos.git
