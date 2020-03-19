@@ -12,7 +12,7 @@
  *
  **********************************************************************/
 
-#include "geos/util.h"
+#include <geos/util.h>
 #include <cmath>
 
 namespace geos {
@@ -24,53 +24,63 @@ namespace util { // geos.util
 double
 sym_round(double val)
 {
-        double n;
-        double f = std::fabs(std::modf(val, &n));
-        if (val >= 0) {
-                if (f < 0.5) {
-                        return std::floor(val);
-                } else if (f > 0.5) {
-                        return std::ceil(val);
-                } else {
-                        return (n + 1.0);
-                }
-        } else {
-                if (f < 0.5) {
-                        return std::ceil(val);
-                } else if (f > 0.5) {
-                        return std::floor(val);
-                } else {
-                        return (n - 1.0);
-                }
+    double n;
+    double f = std::fabs(std::modf(val, &n));
+    if(val >= 0) {
+        if(f < 0.5) {
+            return std::floor(val);
         }
+        else if(f > 0.5) {
+            return std::ceil(val);
+        }
+        else {
+            return (n + 1.0);
+        }
+    }
+    else {
+        if(f < 0.5) {
+            return std::ceil(val);
+        }
+        else if(f > 0.5) {
+            return std::floor(val);
+        }
+        else {
+            return (n - 1.0);
+        }
+    }
 }
 
 /*
  * Asymmetric Rounding Algorithm  - equivalent to Java Math.round()
  */
-double java_math_round(double val)
+double
+java_math_round(double val)
 {
-	double n;
-	double f = std::fabs(std::modf(val, &n));
+    double n;
+    double f = std::fabs(std::modf(val, &n));
 
-	if (val >= 0)
-	{
-		if (f < 0.5) {
-			return std::floor(val);
-		} else if (f > 0.5) {
-			return std::ceil(val);
-		} else {
-			return (n + 1.0);
-		}
-	} else {
-		if (f < 0.5) {
-			return std::ceil(val);
-		} else if (f > 0.5) {
-			return std::floor(val);
-		} else {
-			return n;
-		}
-	}
+    if(val >= 0) {
+        if(f < 0.5) {
+            return std::floor(val);
+        }
+        else if(f > 0.5) {
+            return std::ceil(val);
+        }
+        else {
+            return (n + 1.0);
+        }
+    }
+    else {
+        if(f < 0.5) {
+            return std::ceil(val);
+        }
+        else if(f > 0.5) {
+            return std::floor(val);
+        }
+        else {
+            return n;
+        }
+    }
 } // java_math_round
 
 /*
@@ -79,26 +89,32 @@ double java_math_round(double val)
 double
 rint_vc(double val)
 {
-	double n;
-	double f=std::fabs(std::modf(val,&n));
-	if (val>=0) {
-		if (f<0.5) {
-			return std::floor(val);
-		} else if (f>0.5) {
-			return std::ceil(val);
-		} else {
-			return(std::floor(n/2)==n/2)?n:n+1.0;
-		}
-	} else {
-		if (f<0.5) {
-			return std::ceil(val);
-		} else if (f>0.5) {
-			return std::floor(val);
-		} else {
-			return(std::floor(n/2)==n/2)?n:n-1.0;
-		}
-	}
+    double n;
+    double f = std::fabs(std::modf(val, &n));
+    if(val >= 0) {
+        if(f < 0.5) {
+            return std::floor(val);
+        }
+        else if(f > 0.5) {
+            return std::ceil(val);
+        }
+        else {
+            return(std::floor(n / 2) == n / 2) ? n : n + 1.0;
+        }
+    }
+    else {
+        if(f < 0.5) {
+            return std::ceil(val);
+        }
+        else if(f > 0.5) {
+            return std::floor(val);
+        }
+        else {
+            return(std::floor(n / 2) == n / 2) ? n : n - 1.0;
+        }
+    }
 }
+
 
 } // namespace geos.util
 } // namespace geos

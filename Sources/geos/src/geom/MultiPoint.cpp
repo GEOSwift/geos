@@ -18,62 +18,79 @@
  *
  **********************************************************************/
 
+#include <geos/geom/Point.h>
 #include <geos/geom/MultiPoint.h>
 #include <geos/geom/GeometryFactory.h>
 #include <geos/geom/Dimension.h>
 
 #include <vector>
 
-using namespace std;
-
-//using namespace geos::operation;
-
 namespace geos {
 namespace geom { // geos::geom
 
 /*protected*/
-MultiPoint::MultiPoint(vector<Geometry *> *newPoints, const GeometryFactory *factory)
-	:
-	Geometry(factory),
-	GeometryCollection(newPoints,factory)
+MultiPoint::MultiPoint(std::vector<Geometry*>* newPoints, const GeometryFactory* factory)
+    :
+    GeometryCollection(newPoints, factory)
 {
 }
 
+MultiPoint::MultiPoint(std::vector<std::unique_ptr<Point>> && newPoints, const GeometryFactory& factory)
+    :
+    GeometryCollection(std::move(newPoints), factory)
+{
 
-MultiPoint::~MultiPoint(){}
+}
+
+MultiPoint::MultiPoint(std::vector<std::unique_ptr<Geometry>> && newPoints, const GeometryFactory& factory)
+        :
+        GeometryCollection(std::move(newPoints), factory)
+{
+
+}
 
 Dimension::DimensionType
-MultiPoint::getDimension() const {
-	return Dimension::P; // point
+MultiPoint::getDimension() const
+{
+    return Dimension::P; // point
 }
 
-int MultiPoint::getBoundaryDimension() const {
-	return Dimension::False;
+int
+MultiPoint::getBoundaryDimension() const
+{
+    return Dimension::False;
 }
 
-string MultiPoint::getGeometryType() const {
-	return "MultiPoint";
+std::string
+MultiPoint::getGeometryType() const
+{
+    return "MultiPoint";
 }
 
-Geometry* MultiPoint::getBoundary() const {
-	return getFactory()->createGeometryCollection();
+std::unique_ptr<Geometry>
+MultiPoint::getBoundary() const
+{
+    return std::unique_ptr<Geometry>(getFactory()->createGeometryCollection());
 }
 
 bool
-MultiPoint::equalsExact(const Geometry *other, double tolerance) const
+MultiPoint::equalsExact(const Geometry* other, double tolerance) const
 {
-    if (!isEquivalentClass(other)) {
-      return false;
+    if(!isEquivalentClass(other)) {
+        return false;
     }
-	return GeometryCollection::equalsExact(other,tolerance);
-  }
+    return GeometryCollection::equalsExact(other, tolerance);
+}
 
-const Coordinate* MultiPoint::getCoordinateN(int n) const {
-	return ((*geometries)[n])->getCoordinate();
+const Coordinate*
+MultiPoint::getCoordinateN(size_t n) const
+{
+    return geometries[n]->getCoordinate();
 }
 GeometryTypeId
-MultiPoint::getGeometryTypeId() const {
-	return GEOS_MULTIPOINT;
+MultiPoint::getGeometryTypeId() const
+{
+    return GEOS_MULTIPOINT;
 }
 
 } // namespace geos::geom

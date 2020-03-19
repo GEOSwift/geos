@@ -19,9 +19,9 @@
 #include <geos/inline.h>
 
 namespace geos {
-	namespace geom { // geos::geom
-		class Geometry;
-	}
+namespace geom { // geos::geom
+class Geometry;
+}
 }
 
 namespace geos {
@@ -43,16 +43,19 @@ namespace geom { // geos::geom
 class GEOS_DLL GeometryComponentFilter {
 public:
 
-	/**
-	 *  Performs an operation with or on <code>geom</code>.
-	 *
-	 * @param  geom  a <code>Geometry</code> to which the filter
-	 * is applied.
-	 */
-	virtual void filter_rw(Geometry *geom);
-	virtual void filter_ro(const Geometry *geom);
+    /**
+     *  Performs an operation with or on <code>geom</code>.
+     *
+     * @param  geom  a <code>Geometry</code> to which the filter
+     * is applied.
+     */
+    virtual void filter_rw(Geometry* geom);
+    virtual void filter_ro(const Geometry* geom);
 
-	virtual ~GeometryComponentFilter() {}
+    virtual bool isDone() { return false; }
+
+    virtual
+    ~GeometryComponentFilter() {}
 };
 
 } // namespace geos::geom

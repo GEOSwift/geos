@@ -31,44 +31,44 @@
 namespace geos {
 namespace simplify { // geos::simplify
 
-TaggedLineSegment::TaggedLineSegment(const geom::Coordinate& p0,
-			const geom::Coordinate& p1,
-			const geom::Geometry* nParent,
-			unsigned int nIndex)
-	:
-	LineSegment(p0, p1),
-	parent(nParent),
-	index(nIndex)
+TaggedLineSegment::TaggedLineSegment(const geom::Coordinate& p_p0,
+                                     const geom::Coordinate& p_p1,
+                                     const geom::Geometry* nParent,
+                                     size_t nIndex)
+    :
+    LineSegment(p_p0, p_p1),
+    parent(nParent),
+    index(nIndex)
 {
 }
 
-TaggedLineSegment::TaggedLineSegment(const geom::Coordinate& p0,
-			const geom::Coordinate& p1)
-	:
-	LineSegment(p0, p1),
-	parent(nullptr),
-	index(0)
+TaggedLineSegment::TaggedLineSegment(const geom::Coordinate& p_p0,
+                                     const geom::Coordinate& p_p1)
+    :
+    LineSegment(p_p0, p_p1),
+    parent(nullptr),
+    index(0)
 {
 }
 
 TaggedLineSegment::TaggedLineSegment(const TaggedLineSegment& ls)
-	:
-	LineSegment(ls),
-	parent(ls.parent),
-	index(ls.index)
+    :
+    LineSegment(ls),
+    parent(ls.parent),
+    index(ls.index)
 {
 }
 
 const geom::Geometry*
 TaggedLineSegment::getParent() const
 {
-	return parent;
+    return parent;
 }
 
-unsigned int
+size_t
 TaggedLineSegment::getIndex() const
 {
-	return index;
+    return index;
 }
 
 } // namespace geos::simplify

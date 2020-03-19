@@ -25,20 +25,21 @@
 
 // Forward declarations
 namespace geos {
-	namespace noding {
-		class SegmentString;
-		class SegmentIntersector;
-	}
+namespace noding {
+class SegmentString;
+class SegmentIntersector;
+}
 }
 
 namespace geos {
 namespace noding { // geos.noding
 
 
-/**
+/** \brief
  * Base class for {@link Noder}s which make a single
  * pass to find intersections.
- * This allows using a custom {@link SegmentIntersector}
+ *
+ * This allows using a custom SegmentIntersector
  * (which for instance may simply identify intersections, rather than
  * insert them).
  *
@@ -51,42 +52,46 @@ class GEOS_DLL SinglePassNoder : public Noder { // implements Noder
 
 protected:
 
-	/// Externally owned
-	SegmentIntersector* segInt;
+    /// Externally owned
+    SegmentIntersector* segInt;
 
 public:
 
-	SinglePassNoder(SegmentIntersector* nSegInt=nullptr): segInt(nSegInt) {}
+    SinglePassNoder(SegmentIntersector* nSegInt = nullptr): segInt(nSegInt) {}
 
-	~SinglePassNoder() override {}
+    ~SinglePassNoder() override {}
 
-	/**
-	 * Sets the SegmentIntersector to use with this noder.
-	 * A SegmentIntersector will normally add intersection nodes
-	 * to the input segment strings, but it may not - it may
-	 * simply record the presence of intersections.
-	 * However, some Noders may require that intersections be added.
-	 *
-	 * @param newSegInt
-	 */
-	virtual void setSegmentIntersector(SegmentIntersector* newSegInt) {
-	  segInt = newSegInt;
-	}
+    /** \brief
+     * Sets the SegmentIntersector to use with this noder.
+     *
+     * A SegmentIntersector will normally add intersection nodes
+     * to the input segment strings, but it may not - it may
+     * simply record the presence of intersections.
+     * However, some Noders may require that intersections be added.
+     *
+     * @param newSegInt
+     */
+    virtual void
+    setSegmentIntersector(SegmentIntersector* newSegInt)
+    {
+        segInt = newSegInt;
+    }
 
-	/**
-	 * Computes the noding for a collection of {@link SegmentString}s.
-	 *
-	 * @param segStrings a collection of {@link SegmentString}s to node
-	 */
-	void computeNodes(std::vector<SegmentString*>* segStrings) override =0;
+    /** \brief
+     * Computes the noding for a collection of {@link SegmentString}s.
+     *
+     * @param segStrings a collection of {@link SegmentString}s to node
+     */
+    void computeNodes(std::vector<SegmentString*>* segStrings) override = 0;
 
-	/**
-	 * Returns a {@link Collection} of fully noded {@link SegmentStrings}.
-	 * The SegmentStrings have the same context as their parent.
-	 *
-	 * @return a Collection of SegmentStrings
-	 */
-	std::vector<SegmentString*>* getNodedSubstrings() const override =0;
+    /** \brief
+     * Returns a Collection of fully noded {@link SegmentString}s.
+     *
+     * The SegmentStrings have the same context as their parent.
+     *
+     * @return a Collection of SegmentStrings
+     */
+    std::vector<SegmentString*>* getNodedSubstrings() const override = 0;
 
 };
 

@@ -34,22 +34,25 @@
 
 // Forward declarations
 namespace geos {
-	namespace algorithm {
-		class BoundaryNodeRule;
-	}
-	namespace geom {
-		class LineString;
-		class MultiLineString;
-		class MultiPoint;
-		class Geometry;
-		struct CoordinateLessThen;
-	}
-	namespace geomgraph {
-		class GeometryGraph;
-	}
-	namespace operation {
-		class EndpointInfo;
-	}
+namespace algorithm {
+class BoundaryNodeRule;
+}
+namespace geom {
+class LineString;
+class LinearRing;
+class MultiLineString;
+class MultiPoint;
+class Geometry;
+class Polygon;
+class GeometryCollection;
+struct CoordinateLessThen;
+}
+namespace geomgraph {
+class GeometryGraph;
+}
+namespace operation {
+class EndpointInfo;
+}
 }
 
 
@@ -66,15 +69,15 @@ namespace operation { // geos.operation
  *
  * This definition relies on the definition of boundary points.
  * The SFS uses the Mod-2 rule to determine which points are on the boundary of
- * lineal geometries, but this class supports
- * using other {@link BoundaryNodeRule}s as well.
+ * lineal geometries, but this class supports using other
+ * [BoundaryNodeRules](@ref algorithm::BoundaryNodeRule) as well.
  *
- * Simplicity is defined for each {@link Geometry} subclass as follows:
+ * Simplicity is defined for each [Geometry](@ref geom::Geometry) subclass as follows:
  *
  *  - Valid polygonal geometries are simple by definition, so
- *    <code>isSimple</code> trivially returns true.
+ *    `isSimple` trivially returns true.
  *    (Hint: in order to check if a polygonal geometry has self-intersections,
- *    use {@link Geometry::isValid}).
+ *    use geom::Geometry::isValid()).
  *
  *  - Linear geometries are simple iff they do not self-intersect at points
  *    other than boundary points.
@@ -85,128 +88,132 @@ namespace operation { // geos.operation
  *  - Zero-dimensional geometries (points) are simple iff they have no
  *    repeated points.
  *
- *  - Empty <code>Geometry</code>s are always simple
+ *  - Empty `Geometry`s are always simple
  *
  * @see algorithm::BoundaryNodeRule
  *
  */
-class GEOS_DLL IsSimpleOp
-{
+class GEOS_DLL IsSimpleOp {
 
 public:
 
-	/** \brief
-	 * Creates a simplicity checker using the default
-	 * SFS Mod-2 Boundary Node Rule
-	 *
-	 * @deprecated use IsSimpleOp(Geometry)
-	 */
-	IsSimpleOp();
+    /** \brief
+     * Creates a simplicity checker using the default
+     * SFS Mod-2 Boundary Node Rule
+     *
+     * @deprecated use IsSimpleOp(Geometry)
+     */
+    IsSimpleOp();
 
-	/** \brief
-	 * Creates a simplicity checker using the default
-	 * SFS Mod-2 Boundary Node Rule
-	 *
-	 * @param geom The geometry to test.
-	 *             Will store a reference: keep it alive.
-	 */
-	IsSimpleOp(const geom::Geometry& geom);
+    /** \brief
+     * Creates a simplicity checker using the default
+     * SFS Mod-2 Boundary Node Rule
+     *
+     * @param geom The geometry to test.
+     *             Will store a reference: keep it alive.
+     */
+    IsSimpleOp(const geom::Geometry& geom);
 
-	/** \brief
-	 * Creates a simplicity checker using a given
-	 * algorithm::BoundaryNodeRule
-	 *
-	 * @param geom the geometry to test
-	 * @param boundaryNodeRule the rule to use.
-	 */
-	IsSimpleOp(const geom::Geometry& geom,
-		   const algorithm::BoundaryNodeRule& boundaryNodeRule);
+    /** \brief
+     * Creates a simplicity checker using a given
+     * algorithm::BoundaryNodeRule
+     *
+     * @param geom the geometry to test
+     * @param boundaryNodeRule the rule to use.
+     */
+    IsSimpleOp(const geom::Geometry& geom,
+               const algorithm::BoundaryNodeRule& boundaryNodeRule);
 
-	/**
-	 * Tests whether the geometry is simple.
-	 *
-	 * @return true if the geometry is simple
-	 */
-	bool isSimple();
+    /** \brief
+     * Tests whether the geometry is simple.
+     *
+     * @return true if the geometry is simple
+     */
+    bool isSimple();
 
-	/**
-	 * Gets a coordinate for the location where the geometry
-	 * fails to be simple.
-	 * (i.e. where it has a non-boundary self-intersection).
-	 * {@link #isSimple} must be called before this method is called.
-	 *
-	 * @return a coordinate for the location of the non-boundary
-	 *           self-intersection. Ownership retained.
-	 * @return the null coordinate if the geometry is simple
-	 */
-	const geom::Coordinate* getNonSimpleLocation() const
-	{
-		return nonSimpleLocation.get();
-	}
+    /** \brief
+     * Gets a coordinate for the location where the geometry
+     * fails to be simple (i.e. where it has a non-boundary self-intersection).
+     *
+     * {@link #isSimple} must be called before this method is called.
+     *
+     * @return a coordinate for the location of the non-boundary
+     *         self-intersection. Ownership retained.
+     * @return the null coordinate if the geometry is simple
+     */
+    const geom::Coordinate*
+    getNonSimpleLocation() const
+    {
+        return nonSimpleLocation.get();
+    }
 
-	/**
-	 * Reports whether a geom::LineString is simple.
-	 *
-	 * @param geom the lineal geometry to test
-	 * @return true if the geometry is simple
-	 *
-	 * @deprecated use isSimple()
-	 */
-	bool isSimple(const geom::LineString *geom);
+    /** \brief
+     * Reports whether a geom::LineString is simple.
+     *
+     * @param geom the lineal geometry to test
+     * @return true if the geometry is simple
+     *
+     * @deprecated use isSimple()
+     */
+    bool isSimple(const geom::LineString* geom);
 
-	/**
-	 * Reports whether a geom::MultiLineString is simple.
-	 *
-	 * @param geom the lineal geometry to test
-	 * @return true if the geometry is simple
-	 *
-	 * @deprecated use isSimple()
-	 */
-	bool isSimple(const geom::MultiLineString *geom);
+    /** \brief
+     * Reports whether a geom::MultiLineString is simple.
+     *
+     * @param geom the lineal geometry to test
+     * @return true if the geometry is simple
+     *
+     * @deprecated use isSimple()
+     */
+    bool isSimple(const geom::MultiLineString* geom);
 
-	/**
-	 * A MultiPoint is simple iff it has no repeated points
-	 *
-	 * @deprecated use isSimple()
-	 */
-	bool isSimple(const geom::MultiPoint *mp);
+    /** \brief
+     * A MultiPoint is simple iff it has no repeated points
+     *
+     * @deprecated use isSimple()
+     */
+    bool isSimple(const geom::MultiPoint* mp);
 
-	bool isSimpleLinearGeometry(const geom::Geometry *geom);
+    bool isSimpleLinearGeometry(const geom::Geometry* geom);
 
 private:
 
-	/**
-	 * For all edges, check if there are any intersections which are
-	 * NOT at an endpoint.
-	 * The Geometry is not simple if there are intersections not at
-	 * endpoints.
-	 */
-	bool hasNonEndpointIntersection(geomgraph::GeometryGraph &graph);
+    /**
+     * For all edges, check if there are any intersections which are
+     * NOT at an endpoint.
+     * The Geometry is not simple if there are intersections not at
+     * endpoints.
+     */
+    bool hasNonEndpointIntersection(geomgraph::GeometryGraph& graph);
 
-	/**
-	 * Tests that no edge intersection is the endpoint of a closed line.
-	 * This ensures that closed lines are not touched at their endpoint,
-	 * which is an interior point according to the Mod-2 rule
-	 * To check this we compute the degree of each endpoint.
-	 * The degree of endpoints of closed lines
-	 * must be exactly 2.
-	 */
-	bool hasClosedEndpointIntersection(geomgraph::GeometryGraph &graph);
+    /**
+     * Tests that no edge intersection is the endpoint of a closed line.
+     * This ensures that closed lines are not touched at their endpoint,
+     * which is an interior point according to the Mod-2 rule
+     * To check this we compute the degree of each endpoint.
+     * The degree of endpoints of closed lines
+     * must be exactly 2.
+     */
+    bool hasClosedEndpointIntersection(geomgraph::GeometryGraph& graph);
 
-	/**
-	 * Add an endpoint to the map, creating an entry for it if none exists
-	 */
-	void addEndpoint(std::map<const geom::Coordinate*, EndpointInfo*,
-			geom::CoordinateLessThen>&endPoints,
-			const geom::Coordinate *p, bool isClosed);
+    bool computeSimple(const geom::Geometry* geom);
+    bool isSimplePolygonal(const geom::Geometry* geom);
+    bool isSimpleGeometryCollection(const geom::GeometryCollection* col);
 
-	bool isClosedEndpointsInInterior;
+    /**
+     * Add an endpoint to the map, creating an entry for it if none exists
+     */
+    void addEndpoint(std::map<const geom::Coordinate*, EndpointInfo*,
+                     geom::CoordinateLessThen>& endPoints,
+                     const geom::Coordinate* p, bool isClosed);
 
-	bool isSimpleMultiPoint(const geom::MultiPoint& mp);
+    bool isClosedEndpointsInInterior;
 
-	const geom::Geometry* geom;
+    bool isSimpleMultiPoint(const geom::MultiPoint& mp);
 
-	std::unique_ptr<geom::Coordinate> nonSimpleLocation;
+    const geom::Geometry* geom;
+
+    std::unique_ptr<geom::Coordinate> nonSimpleLocation;
 };
 
 } // namespace geos.operation

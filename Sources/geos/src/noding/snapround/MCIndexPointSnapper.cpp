@@ -40,44 +40,63 @@ class HotPixelSnapAction: public index::chain::MonotoneChainSelectAction {
 
 public:
 
-	HotPixelSnapAction(HotPixel& nHotPixel,
-			SegmentString* nParentEdge,
-			unsigned int nVertexIndex)
-		:
-		MonotoneChainSelectAction(),
-		hotPixel(nHotPixel),
-		parentEdge(nParentEdge),
-		vertexIndex(nVertexIndex),
-		isNodeAddedVar(false)
-	{}
+    HotPixelSnapAction(HotPixel& nHotPixel,
+                       SegmentString* nParentEdge,
+                       size_t nVertexIndex)
+        :
+        MonotoneChainSelectAction(),
+        hotPixel(nHotPixel),
+        parentEdge(nParentEdge),
+        vertexIndex(nVertexIndex),
+        isNodeAddedVar(false)
+    {}
 
-	bool isNodeAdded() const { return isNodeAddedVar; }
+    /**
+    * Reports whether the HotPixel caused a node to be added in any target
+    * segmentString (including its own). If so, the HotPixel must be added as a
+    * node as well.
+    *
+    * @return true if a node was added in any target segmentString.
+    */
+    bool
+    isNodeAdded() const
+    {
+        return isNodeAddedVar;
+    }
 
-	void select(chain::MonotoneChain& mc, unsigned int startIndex) override
-	{
-		// This is casting away 'constness'!
-		NodedSegmentString& ss = *(static_cast<NodedSegmentString*>(mc.getContext()));
+    /**
+    * Check if a segment of the monotone chain intersects
+    * the hot pixel vertex and introduce a snap node if so.
+    * Optimized to avoid noding segments which
+    * contain the vertex (which otherwise
+    * would cause every vertex to be noded).
+    */
+    void
+    select(chain::MonotoneChain& mc, size_t startIndex) override
+    {
+        // This is casting away 'constness'!
+        NodedSegmentString& ss = *(static_cast<NodedSegmentString*>(mc.getContext()));
 
-		// don't snap a vertex to itself
-		if ( parentEdge ) {
-			if (&ss == parentEdge && startIndex == vertexIndex) return;
-		}
+        if (parentEdge == &ss) {
+            // exit if hotpixel is equal to endpoint of target segment
+            if (startIndex == vertexIndex || startIndex + 1 == vertexIndex)
+                return;
+        }
+        // snap and record if a node was created
+        isNodeAddedVar |= hotPixel.addSnappedNode(ss, startIndex);
+    }
 
-		//isNodeAddedVar = SimpleSnapRounder::addSnappedNode(hotPixel, ss, startIndex);
-
-		isNodeAddedVar = hotPixel.addSnappedNode(ss, startIndex);
-	}
-
-	void select(const LineSegment& ls) override
-	{
-		::geos::ignore_unused_variable_warning(ls);
-	}
+    void
+    select(const LineSegment& ls) override
+    {
+        ::geos::ignore_unused_variable_warning(ls);
+    }
 
 private:
-	HotPixel& hotPixel;
-	SegmentString* parentEdge;
-	unsigned int vertexIndex;
-	bool isNodeAddedVar;
+    HotPixel& hotPixel;
+    SegmentString* parentEdge;
+    size_t vertexIndex;
+    bool isNodeAddedVar;
 
     // Declare type as noncopyable
     HotPixelSnapAction(const HotPixelSnapAction& other) = delete;
@@ -87,23 +106,25 @@ private:
 class MCIndexPointSnapperVisitor: public ItemVisitor {
 
 public:
-	MCIndexPointSnapperVisitor(const Envelope& nPixelEnv, HotPixelSnapAction& nAction)
-		:
-		pixelEnv(nPixelEnv),
-		action(nAction)
-	{}
+    MCIndexPointSnapperVisitor(const Envelope& nPixelEnv, HotPixelSnapAction& nAction)
+        :
+        pixelEnv(nPixelEnv),
+        action(nAction)
+    {}
 
-	~MCIndexPointSnapperVisitor() override {}
+    ~MCIndexPointSnapperVisitor() override {}
 
-	void visitItem(void* item) override {
-		chain::MonotoneChain& testChain =
-			*(static_cast<chain::MonotoneChain*>(item));
-		testChain.select(pixelEnv, action);
-	}
+    void
+    visitItem(void* item) override
+    {
+        chain::MonotoneChain& testChain =
+            *(static_cast<chain::MonotoneChain*>(item));
+        testChain.select(pixelEnv, action);
+    }
 
 private:
-	const Envelope& pixelEnv;
-	chain::MonotoneChainSelectAction& action;
+    const Envelope& pixelEnv;
+    chain::MonotoneChainSelectAction& action;
 
     // Declare type as noncopyable
     MCIndexPointSnapperVisitor(const MCIndexPointSnapperVisitor& other);
@@ -113,16 +134,16 @@ private:
 /* public */
 bool
 MCIndexPointSnapper::snap(HotPixel& hotPixel,
-		SegmentString* parentEdge,
-		unsigned int vertexIndex)
+                          SegmentString* parentEdge,
+                          size_t vertexIndex)
 {
-	const Envelope& pixelEnv = hotPixel.getSafeEnvelope();
-	HotPixelSnapAction hotPixelSnapAction(hotPixel, parentEdge, vertexIndex);
-	MCIndexPointSnapperVisitor visitor(pixelEnv, hotPixelSnapAction);
+    const Envelope& pixelEnv = hotPixel.getSafeEnvelope();
+    HotPixelSnapAction hotPixelSnapAction(hotPixel, parentEdge, vertexIndex);
+    MCIndexPointSnapperVisitor visitor(pixelEnv, hotPixelSnapAction);
 
-	index.query(&pixelEnv, visitor);
+    index.query(&pixelEnv, visitor);
 
-	return hotPixelSnapAction.isNodeAdded();
+    return hotPixelSnapAction.isNodeAdded();
 }
 
 } // namespace geos.noding.snapround

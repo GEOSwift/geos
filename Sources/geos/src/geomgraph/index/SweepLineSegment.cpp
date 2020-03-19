@@ -25,41 +25,37 @@ namespace geos {
 namespace geomgraph { // geos.geomgraph
 namespace index { // geos.geomgraph.index
 
-SweepLineSegment::SweepLineSegment(Edge *newEdge, int newPtIndex):
-	edge(newEdge),
-	pts(newEdge->getCoordinates()),
-	ptIndex(newPtIndex)
+SweepLineSegment::SweepLineSegment(Edge* newEdge, size_t newPtIndex):
+    edge(newEdge),
+    pts(newEdge->getCoordinates()),
+    ptIndex(newPtIndex)
 {
-	//pts=newEdge->getCoordinates();
-	//edge=newEdge;
-	//ptIndex=newPtIndex;
-}
-
-SweepLineSegment::~SweepLineSegment()
-{
+    //pts=newEdge->getCoordinates();
+    //edge=newEdge;
+    //ptIndex=newPtIndex;
 }
 
 double
 SweepLineSegment::getMinX()
 {
-	double x1=pts->getAt(ptIndex).x;
-	double x2=pts->getAt(ptIndex+1).x;
-	return x1<x2?x1:x2;
+    double x1 = pts->getAt(ptIndex).x;
+    double x2 = pts->getAt(ptIndex + 1).x;
+    return x1 < x2 ? x1 : x2;
 }
 
 double
 SweepLineSegment::getMaxX()
 {
-	double x1=pts->getAt(ptIndex).x;
-	double x2=pts->getAt(ptIndex+1).x;
-	return x1>x2?x1:x2;
+    double x1 = pts->getAt(ptIndex).x;
+    double x2 = pts->getAt(ptIndex + 1).x;
+    return x1 > x2 ? x1 : x2;
 }
 
 void
-SweepLineSegment::computeIntersections(SweepLineSegment *ss,
-	SegmentIntersector *si)
+SweepLineSegment::computeIntersections(SweepLineSegment* ss,
+                                       SegmentIntersector* si)
 {
-	si->addIntersections(edge, ptIndex, ss->edge, ss->ptIndex);
+    si->addIntersections(edge, ptIndex, ss->edge, ss->ptIndex);
 }
 
 } // namespace geos.geomgraph.index

@@ -31,18 +31,18 @@
 
 // Forward declarations
 namespace geos {
-    namespace geom {
-        class GeometryFactory;
-        class Geometry;
-        class Polygon;
-        class MultiPolygon;
-        class Envelope;
-    }
-    namespace index {
-        namespace strtree {
-            class ItemsList;
-        }
-    }
+namespace geom {
+class GeometryFactory;
+class Geometry;
+class Polygon;
+class MultiPolygon;
+class Envelope;
+}
+namespace index {
+namespace strtree {
+class ItemsList;
+}
+}
 }
 
 namespace geos {
@@ -51,25 +51,21 @@ namespace geounion {  // geos::operation::geounion
 
 /**
  * \brief
- * Provides an efficient method of unioning a collection of
- * {@link Polygonal} geometries.
- * This algorithm is faster and likely more robust than
- * the simple iterated approach of
- * repeatedly unioning each polygon to a result geometry.
+ * Provides an efficient method of unioning a collection of polygonal geometries.
  *
- * The <tt>buffer(0)</tt> trick is sometimes faster, but can be less robust and
+ * This algorithm is faster and likely more robust than the simple iterated
+ * approach of repeatedly unioning each polygon to a result geometry.
+ *
+ * The `buffer(0)` trick is sometimes faster, but can be less robust and
  * can sometimes take an exceptionally long time to complete.
  * This is particularly the case where there is a high degree of overlap
- * between the polygons.  In this case, <tt>buffer(0)</tt> is forced to compute
- * with <i>all</i> line segments from the outset,
- * whereas cascading can eliminate many segments
- * at each stage of processing.
- * The best case for buffer(0) is the trivial case
- * where there is <i>no</i> overlap between the input geometries.
- * However, this case is likely rare in practice.
+ * between the polygons.  In this case, `buffer(0)` is forced to compute
+ * with *all* line segments from the outset, whereas cascading can eliminate
+ * many segments at each stage of processing.
+ * The best case for buffer(0) is the trivial case where there is `no` overlap
+ * between the input geometries. However, this case is likely rare in practice.
  */
-class GEOS_DLL CascadedPolygonUnion
-{
+class GEOS_DLL CascadedPolygonUnion {
 private:
     std::vector<geom::Polygon*>* inputPolys;
     geom::GeometryFactory const* geomFactory;
@@ -83,13 +79,13 @@ private:
      */
     static int const STRTREE_NODE_CAPACITY = 4;
 
-    /**
-     * Computes a {@link Geometry} containing only {@link Polygonal} components.
+    /** \brief
+     * Computes a [Geometry](@ref geom::Geometry) containing only polygonal components.
      *
-     * Extracts the {@link Polygon}s from the input
-     * and returns them as an appropriate {@link Polygonal} geometry.
+     * Extracts the [Polygons](@ref geom::Polygon) from the input
+     * and returns them as an appropriate polygonal geometry.
      *
-     * If the input is already <tt>Polygonal</tt>, it is returned unchanged.
+     * If the input is already `Polygonal`, it is returned unchanged.
      *
      * A particular use case is to filter out non-polygonal components
      * returned from an overlay operation.
@@ -102,59 +98,58 @@ private:
 public:
     CascadedPolygonUnion();
 
-    /**
-     * Computes the union of
-     * a collection of {@link Polygonal} {@link Geometry}s.
+    /** \brief
+     * Computes the union of a collection of polygonal [Geometrys](@ref geom::Geometry).
      *
-     * @param polys a collection of {@link Polygonal} {@link Geometry}s.
-     *        ownership of elements _and_ vector are left to caller.
+     * @param polys a collection of polygonal [Geometrys](@ref geom::Geometry).
+     *              ownership of elements *and* vector are left to caller.
      */
     static geom::Geometry* Union(std::vector<geom::Polygon*>* polys);
 
-    /**
-     * Computes the union of a set of {@link Polygonal} {@link Geometry}s.
+    /** \brief
+     * Computes the union of a set of polygonal [Geometrys](@ref geom::Geometry).
      *
      * @tparam T an iterator yelding something castable to const Polygon *
      * @param start start iterator
      * @param end end iterator
      */
     template <class T>
-    static geom::Geometry* Union(T start, T end)
+    static geom::Geometry*
+    Union(T start, T end)
     {
-      std::vector<geom::Polygon*> polys;
-      for (T i=start; i!=end; ++i) {
-        const geom::Polygon* p = dynamic_cast<const geom::Polygon*>(*i);
-        polys.push_back(const_cast<geom::Polygon*>(p));
-      }
-      return Union(&polys);
+        std::vector<geom::Polygon*> polys;
+        for(T i = start; i != end; ++i) {
+            const geom::Polygon* p = dynamic_cast<const geom::Polygon*>(*i);
+            polys.push_back(const_cast<geom::Polygon*>(p));
+        }
+        return Union(&polys);
     }
 
-    /**
-     * Computes the union of
-     * a collection of {@link Polygonal} {@link Geometry}s.
+    /** \brief
+     * Computes the union of a collection of polygonal [Geometrys](@ref geom::Geometry).
      *
-     * @param polys a collection of {@link Polygonal} {@link Geometry}s
-     *        ownership of elements _and_ vector are left to caller.
+     * @param polys a collection of polygonal [Geometrys](@ref geom::Geometry).
+     *              Ownership of elements *and* vector are left to caller.
      */
     static geom::Geometry* Union(const geom::MultiPolygon* polys);
 
-    /**
-     * Creates a new instance to union
-     * the given collection of {@link Geometry}s.
+    /** \brief
+     * Creates a new instance to union the given collection of
+     * [Geometrys](@ref geom::Geometry).
      *
-     * @param geoms a collection of {@link Polygonal} {@link Geometry}s
-     *        ownership of elements _and_ vector are left to caller.
+     * @param polys a collection of polygonal [Geometrys](@ref geom::Geometry).
+     *              Ownership of elements *and* vector are left to caller.
      */
     CascadedPolygonUnion(std::vector<geom::Polygon*>* polys)
-      : inputPolys(polys),
-        geomFactory(nullptr)
+        : inputPolys(polys),
+          geomFactory(nullptr)
     {}
 
-    /**
+    /** \brief
      * Computes the union of the input geometries.
      *
      * @return the union of the input geometries
-     * @return null if no input geometries were provided
+     * @return `null` if no input geometries were provided
      */
     geom::Geometry* Union();
 
@@ -178,7 +173,7 @@ private:
      * @return the union of the list section
      */
     geom::Geometry* binaryUnion(GeometryListHolder* geoms, std::size_t start,
-        std::size_t end);
+                                std::size_t end);
 
     /**
      * Reduces a tree of geometries to a list of geometries
@@ -199,43 +194,6 @@ private:
      * @return null if both inputs are null
      */
     geom::Geometry* unionSafe(geom::Geometry* g0, geom::Geometry* g1);
-
-    geom::Geometry* unionOptimized(geom::Geometry* g0, geom::Geometry* g1);
-
-    /**
-     * \brief
-     * Unions two polygonal geometries, restricting computation
-     * to the envelope intersection where possible.
-     *
-     * The case of MultiPolygons is optimized to union only
-     * the polygons which lie in the intersection of the two geometry's
-     * envelopes.
-     * Polygons outside this region can simply be combined with the union
-     * result, which is potentially much faster.
-     * This case is likely to occur often during cascaded union, and may also
-     * occur in real world data (such as unioning data for parcels on
-     * different street blocks).
-     *
-     * @param g0 a polygonal geometry
-     * @param g1 a polygonal geometry
-     * @param common the intersection of the envelopes of the inputs
-     * @return the union of the inputs
-     */
-    geom::Geometry* unionUsingEnvelopeIntersection(geom::Geometry* g0,
-        geom::Geometry* g1, geom::Envelope const& common);
-
-    geom::Geometry* extractByEnvelope(geom::Envelope const& env,
-        geom::Geometry* geom, std::vector<geom::Geometry*>& disjointGeoms);
-
-    void extractByEnvelope(geom::Envelope const& env,
-        geom::Geometry* geom,
-        std::vector<geom::Geometry*>& intersectingGeoms,
-        std::vector<geom::Geometry*>& disjointGeoms);
-
-    void extractByEnvelope(geom::Envelope const& env,
-        std::vector<geom::Geometry*>& sourceGeoms,
-        std::vector<geom::Geometry*>& intersectingGeoms,
-        std::vector<geom::Geometry*>& disjointGeoms);
 
     /**
      * Encapsulates the actual unioning of two polygonal geometries.

@@ -8,7 +8,7 @@
  *
  * This is free software; you can redistribute and/or modify it under
  * the terms of the GNU Lesser General Public Licence as published
- * by the Free Software Foundation. 
+ * by the Free Software Foundation.
  * See the COPYING file for more information.
  *
  **********************************************************************
@@ -28,18 +28,17 @@
 namespace geos {
 namespace geom { // geos::geom
 
-INLINE 
-MultiLineString::MultiLineString(const MultiLineString &mp)
-	:
-	Geometry(mp),
-	GeometryCollection(mp)
+INLINE
+MultiLineString::MultiLineString(const MultiLineString& mp)
+    :
+    GeometryCollection(mp)
 {
 }
 
-INLINE Geometry*
+INLINE std::unique_ptr<Geometry>
 MultiLineString::clone() const
 {
-	return new MultiLineString(*this);
+    return std::unique_ptr<Geometry>(new MultiLineString(*this));
 }
 
 } // namespace geos::geom

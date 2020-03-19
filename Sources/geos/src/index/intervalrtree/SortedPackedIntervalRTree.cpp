@@ -34,64 +34,65 @@ namespace intervalrtree {
 void
 SortedPackedIntervalRTree::init()
 {
-	if (root != nullptr) return;
+    // Already built
+    if(root != nullptr)
+        return;
 
-	root = buildTree();
+    /**
+    * if leaves is empty then nothing has been inserted.
+    * In this case it is safe to leave the tree in an open state
+    */
+    if (leaves.empty()) return;
+
+    root = buildTree();
 }
 
-const IntervalRTreeNode *
+const IntervalRTreeNode*
 SortedPackedIntervalRTree::buildTree()
 {
-	// sort the leaf nodes
-	std::sort( leaves->begin(), leaves->end(), IntervalRTreeNode::compare );
+    branches.reserve(leaves.size() - 1);
 
-	// now group nodes into blocks of two and build tree up recursively
-	IntervalRTreeNode::ConstVect * src = leaves;
-	IntervalRTreeNode::ConstVect * dest = new IntervalRTreeNode::ConstVect();
+    // now group nodes into blocks of two and build tree up recursively
+    std::vector<const IntervalRTreeNode*> src{leaves.size()};
+    std::vector<const IntervalRTreeNode*> dest;
+    std::transform(leaves.begin(), leaves.end(), src.begin(), [](const IntervalRTreeLeafNode & n) {
+        return &n;
+    });
 
-	while (true)
-	{
-		buildLevel( src, dest);
+    // sort the leaf nodes
+    std::sort(src.begin(), src.end(), IntervalRTreeNode::compare);
 
-		if (dest->size() == 1)
-		{
-			const IntervalRTreeNode * r = (*dest)[ 0 ];
-			delete src;
-			delete dest;
-			//delete leaves; // don't need anymore
-			return r;
-		}
+    while(true) {
+        buildLevel(src, dest);
 
-		IntervalRTreeNode::ConstVect * temp = src;
-		src = dest;
-		dest = temp;
-	}
+        if(dest.size() == 1) {
+            return dest[0];
+        }
+
+        std::swap(src, dest);
+    }
 }
 
 void
-SortedPackedIntervalRTree::buildLevel( IntervalRTreeNode::ConstVect * src, IntervalRTreeNode::ConstVect * dest)
+SortedPackedIntervalRTree::buildLevel(IntervalRTreeNode::ConstVect& src, IntervalRTreeNode::ConstVect& dest)
 {
-	level++;
+    level++;
 
-	dest->clear();
+    dest.clear();
 
-	for (size_t i = 0, ni = src->size(); i < ni; i += 2)
-	{
-		const IntervalRTreeNode * n1 = (*src)[ i ];
+    for(size_t i = 0, ni = src.size(); i < ni; i += 2) {
+        const IntervalRTreeNode* n1 = src[i];
 
-		if ( i + 1 < ni )
-		{
-			const IntervalRTreeNode * n2 = (*src)[ i + 1 ];
+        if(i + 1 < ni) {
+            const IntervalRTreeNode* n2 = src[i + 1];
 
-			const IntervalRTreeNode * node = new IntervalRTreeBranchNode( n1, n2 );
-
-			dest->push_back( node);
-		}
-		else
-		{
-			dest->push_back( n1);
-		}
-	}
+            branches.emplace_back(n1, n2);
+            dest.push_back(&branches.back());
+        }
+        else {
+            dest.push_back(n1);
+        }
+    }
 }
 
 //
@@ -101,45 +102,27 @@ SortedPackedIntervalRTree::buildLevel( IntervalRTreeNode::ConstVect * src, Inter
 //
 // public:
 //
-SortedPackedIntervalRTree::SortedPackedIntervalRTree()
-	:
-	leaves( new IntervalRTreeNode::ConstVect()),
-	root( nullptr),
-	level( 0)
-{ }
-
-SortedPackedIntervalRTree::~SortedPackedIntervalRTree()
-{
-	if ( root != nullptr )
-	{
-		// deleting root cascades to all IntervalRTreeNode's
-		delete root;
-	}
-	else // possibly IntervalRTreeNode's in leaves to delete
-	{
-		for ( size_t i = 0, ni = leaves->size(); i < ni; i++ )
-			delete (*leaves)[i];
-
-		delete leaves;
-	}
-}
-
 
 void
-SortedPackedIntervalRTree::insert( double min, double max, void * item)
+SortedPackedIntervalRTree::insert(double min, double max, void* item)
 {
-	if (root != nullptr)
-		throw new util::UnsupportedOperationException( "Index cannot be added to once it has been queried");
+    if(root != nullptr) {
+        throw util::UnsupportedOperationException("Index cannot be added to once it has been queried");
+    }
 
-	leaves->push_back( new IntervalRTreeLeafNode( min, max, item));
+    leaves.emplace_back(min, max, item);
 }
 
 void
-SortedPackedIntervalRTree::query( double min, double max, index::ItemVisitor * visitor)
+SortedPackedIntervalRTree::query(double min, double max, index::ItemVisitor* visitor)
 {
-	init();
+    init();
 
-	root->query( min, max, visitor);
+    // if root is null tree must be empty
+    if (root == nullptr)
+      return;
+
+    root->query(min, max, visitor);
 }
 
 } // geos::intervalrtree

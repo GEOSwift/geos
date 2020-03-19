@@ -22,43 +22,65 @@
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/Envelope.h>
 #include <geos/geom/Coordinate.h>
+#include <geos/geom/LineSegment.h>
+#include <geos/operation/distance/GeometryLocation.h>
 
 namespace geos {
-    namespace operation {
-        namespace distance {
-            class FacetSequence {
-            private:
-                const geom::CoordinateSequence *pts;
-                const size_t start;
-                const size_t end;
+namespace operation {
+namespace distance {
+class FacetSequence {
+private:
+    const geom::CoordinateSequence* pts;
+    const size_t start;
+    const size_t end;
+    const geom::Geometry* geom;
+    /*
+    * Unlike JTS, we store the envelope in the FacetSequence so
+    * that it has a clear owner.  This is helpful when making a
+    * tree of FacetSequence objects (FacetSequenceTreeBuilder)
+    */
+    geom::Envelope env;
 
-                /* Unlike JTS, we store the envelope in the FacetSequence so that it has a clear owner.  This is
-                 * helpful when making a tree of FacetSequence objects (FacetSequenceTreeBuilder)
-                 * */
-                geom::Envelope env;
+    double computeDistanceLineLine(const FacetSequence& facetSeq,
+                                   std::vector<GeometryLocation> *locs) const;
 
-                double computeLineLineDistance(const FacetSequence & facetSeq) const;
+    double computeDistancePointLine(const geom::Coordinate& pt,
+                                    const FacetSequence& facetSeq,
+                                    std::vector<GeometryLocation> *locs) const;
 
-                double computePointLineDistance(const geom::Coordinate & pt, const FacetSequence & facetSeq) const;
+    void updateNearestLocationsPointLine(const geom::Coordinate& pt,
+                                         const FacetSequence& facetSeq, size_t i,
+                                         const geom::Coordinate& q0, const geom::Coordinate &q1,
+                                         std::vector<GeometryLocation> *locs) const;
 
-                void computeEnvelope();
+    void updateNearestLocationsLineLine(size_t i, const geom::Coordinate& p0, const geom::Coordinate& p1,
+                                        const FacetSequence& facetSeq,
+                                        size_t j, const geom::Coordinate& q0, const geom::Coordinate &q1,
+                                        std::vector<GeometryLocation> *locs) const;
 
-            public:
-                const geom::Envelope * getEnvelope() const;
+    void computeEnvelope();
 
-                const geom::Coordinate * getCoordinate(size_t index) const;
+public:
+    const geom::Envelope* getEnvelope() const;
 
-                size_t size() const;
+    const geom::Coordinate* getCoordinate(size_t index) const;
 
-                bool isPoint() const;
+    size_t size() const;
 
-                double distance(const FacetSequence & facetSeq) const;
+    bool isPoint() const;
 
-                FacetSequence(const geom::CoordinateSequence *pts, size_t start, size_t end);
-            };
+    double distance(const FacetSequence& facetSeq) const;
 
-        }
-    }
+    FacetSequence(const geom::CoordinateSequence* pts, size_t start, size_t end);
+
+    FacetSequence(const geom::Geometry* geom, const geom::CoordinateSequence* pts, size_t start, size_t end);
+
+    std::vector<GeometryLocation> nearestLocations(const FacetSequence& facetSeq) const;
+
+};
+
+}
+}
 }
 
 #endif //GEOS_OPERATION_DISTANCE_FACETSEQUENCE_H

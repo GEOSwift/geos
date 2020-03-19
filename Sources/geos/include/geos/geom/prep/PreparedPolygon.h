@@ -23,15 +23,17 @@
 #include <geos/geom/prep/BasicPreparedGeometry.h> // for inheritance
 #include <geos/noding/SegmentString.h>
 
+#include <memory>
+
 namespace geos {
-	namespace noding {
-		class FastSegmentSetIntersectionFinder;
-	}
-	namespace algorithm {
-		namespace locate {
-			class PointOnGeometryLocator;
-		}
-	}
+namespace noding {
+class FastSegmentSetIntersectionFinder;
+}
+namespace algorithm {
+namespace locate {
+class PointOnGeometryLocator;
+}
+}
 }
 
 namespace geos {
@@ -45,26 +47,25 @@ namespace prep { // geos::geom::prep
  * @author mbdavis
  *
  */
-class PreparedPolygon : public BasicPreparedGeometry
-{
+class PreparedPolygon : public BasicPreparedGeometry {
 private:
-	bool isRectangle;
-	mutable noding::FastSegmentSetIntersectionFinder * segIntFinder;
-	mutable algorithm::locate::PointOnGeometryLocator * ptOnGeomLoc;
-	mutable noding::SegmentString::ConstVect segStrings;
+    bool isRectangle;
+    mutable std::unique_ptr<noding::FastSegmentSetIntersectionFinder> segIntFinder;
+    mutable std::unique_ptr<algorithm::locate::PointOnGeometryLocator> ptOnGeomLoc;
+    mutable noding::SegmentString::ConstVect segStrings;
 
 protected:
 public:
-	PreparedPolygon( const geom::Geometry * geom);
-	~PreparedPolygon( ) override;
+    PreparedPolygon(const geom::Geometry* geom);
+    ~PreparedPolygon() override;
 
-	noding::FastSegmentSetIntersectionFinder * getIntersectionFinder() const;
-	algorithm::locate::PointOnGeometryLocator * getPointLocator() const;
+    noding::FastSegmentSetIntersectionFinder* getIntersectionFinder() const;
+    algorithm::locate::PointOnGeometryLocator* getPointLocator() const;
 
-	bool contains( const geom::Geometry* g) const override;
-	bool containsProperly( const geom::Geometry* g) const override;
-	bool covers( const geom::Geometry* g) const override;
-	bool intersects( const geom::Geometry* g) const override;
+    bool contains(const geom::Geometry* g) const override;
+    bool containsProperly(const geom::Geometry* g) const override;
+    bool covers(const geom::Geometry* g) const override;
+    bool intersects(const geom::Geometry* g) const override;
 
 };
 

@@ -23,8 +23,10 @@
 
 #include <geos/export.h>
 #include <geos/inline.h>
+#include <geos/geom/Location.h>
 
 #include <vector>
+#include <array>
 #include <string>
 
 #ifdef _MSC_VER
@@ -59,79 +61,76 @@ class GEOS_DLL TopologyLocation {
 
 public:
 
-	friend std::ostream& operator<< (std::ostream&, const TopologyLocation&);
+    friend std::ostream& operator<< (std::ostream&, const TopologyLocation&);
 
-	TopologyLocation();
+    TopologyLocation() = default;
 
-	~TopologyLocation();
+    /** \brief
+     * Constructs a TopologyLocation specifying how points on, to the
+     * left of, and to the right of some GraphComponent relate to some
+     * Geometry.
+     *
+     * Possible values for the
+     * parameters are Location::UNDEF, Location::EXTERIOR, Location::BOUNDARY,
+     * and Location::INTERIOR.
+     *
+     * @see Location
+     */
+    TopologyLocation(geom::Location on, geom::Location left, geom::Location right);
 
-	TopologyLocation(const std::vector<int> &newLocation);
+    TopologyLocation(geom::Location on);
 
-	/** \brief
-	 * Constructs a TopologyLocation specifying how points on, to the
-	 * left of, and to the right of some GraphComponent relate to some
-	 * Geometry.
-	 *
-	 * Possible values for the
-	 * parameters are Location::UNDEF, Location::EXTERIOR, Location::BOUNDARY,
-	 * and Location::INTERIOR.
-	 *
-	 * @see Location
-	 */
-	TopologyLocation(int on, int left, int right);
+    TopologyLocation(const TopologyLocation& gl);
 
-	TopologyLocation(int on);
+    TopologyLocation& operator= (const TopologyLocation& gl);
 
-	TopologyLocation(const TopologyLocation &gl);
+    geom::Location get(std::size_t posIndex) const;
 
-	TopologyLocation& operator= (const TopologyLocation &gl);
+    /**
+     * @return true if all locations are Location::UNDEF
+     */
+    bool isNull() const;
 
-	int get(std::size_t posIndex) const;
+    /**
+     * @return true if any locations is Location::UNDEF
+     */
+    bool isAnyNull() const;
 
-	/**
-	 * @return true if all locations are Location::UNDEF
-	 */
-	bool isNull() const;
+    bool isEqualOnSide(const TopologyLocation& le, int locIndex) const;
 
-	/**
-	 * @return true if any locations is Location::UNDEF
-	 */
-	bool isAnyNull() const;
+    bool isArea() const;
 
-	bool isEqualOnSide(const TopologyLocation &le, int locIndex) const;
+    bool isLine() const;
 
-	bool isArea() const;
+    void flip();
 
-	bool isLine() const;
+    void setAllLocations(geom::Location locValue);
 
-	void flip();
+    void setAllLocationsIfNull(geom::Location locValue);
 
-	void setAllLocations(int locValue);
+    void setLocation(std::size_t locIndex, geom::Location locValue);
 
-	void setAllLocationsIfNull(int locValue);
+    void setLocation(geom::Location locValue);
 
-	void setLocation(std::size_t locIndex, int locValue);
+    /// Warning: returns reference to owned memory
+    const std::array<geom::Location, 3>& getLocations() const;
 
-	void setLocation(int locValue);
+    void setLocations(geom::Location on, geom::Location left, geom::Location right);
 
-	/// Warning: returns reference to owned memory
-	const std::vector<int> &getLocations() const;
+    bool allPositionsEqual(geom::Location loc) const;
 
-	void setLocations(int on, int left, int right);
+    /** \brief
+     * merge updates only the UNDEF attributes of this object
+     * with the attributes of another.
+     */
+    void merge(const TopologyLocation& gl);
 
-	bool allPositionsEqual(int loc) const;
-
-	/** \brief
-	 * merge updates only the UNDEF attributes of this object
-	 * with the attributes of another.
-	 */
-	void merge(const TopologyLocation &gl);
-
-	std::string toString() const;
+    std::string toString() const;
 
 private:
 
-	std::vector<int> location;
+    std::array<geom::Location, 3> location;
+    std::uint8_t locationSize;
 };
 
 std::ostream& operator<< (std::ostream&, const TopologyLocation&);
@@ -139,9 +138,9 @@ std::ostream& operator<< (std::ostream&, const TopologyLocation&);
 } // namespace geos.geomgraph
 } // namespace geos
 
-//#ifdef GEOS_INLINE
-//# include "geos/geomgraph/TopologyLocation.inl"
-//#endif
+#ifdef GEOS_INLINE
+# include "geos/geomgraph/TopologyLocation.inl"
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(pop)

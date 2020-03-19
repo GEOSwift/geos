@@ -6,16 +6,14 @@ rm -rf .update
 git clone https://git.osgeo.org/gitea/geos/geos.git .update
 
 cd .update
-git checkout 3.7.1
+git checkout 3.8.1
 sh autogen.sh
 ./configure
-./tools/repo_revision.sh
 
 cd ..
 mkdir Sources.new
 mkdir Sources.new/geos
 cp .update/COPYING Sources.new/
-cp .update/geos_revision.h Sources.new/geos/
 cp -R .update/include Sources.new/geos/
 cp -R .update/capi Sources.new/geos/
 cp -R .update/src Sources.new/geos/

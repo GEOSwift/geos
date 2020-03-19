@@ -35,33 +35,34 @@ namespace operation { // geos.operation
 namespace distance { // geos.operation.distance
 
 /*public*/
-vector<GeometryLocation*>*
-ConnectedElementLocationFilter::getLocations(const Geometry *geom)
+vector<unique_ptr<GeometryLocation>>
+ConnectedElementLocationFilter::getLocations(const Geometry* geom)
 {
-	vector<GeometryLocation*> *loc=new vector<GeometryLocation*>();
-	ConnectedElementLocationFilter c(loc);
-	geom->apply_ro(&c);
-	return loc;
+    ConnectedElementLocationFilter c;
+    geom->apply_ro(&c);
+    return std::move(c.locations);
 }
 
 void
-ConnectedElementLocationFilter::filter_ro(const Geometry *geom)
+ConnectedElementLocationFilter::filter_ro(const Geometry* geom)
 {
-	if ((typeid(*geom)==typeid(Point)) ||
-		(typeid(*geom)==typeid(LineString)) ||
-		(typeid(*geom)==typeid(LinearRing)) ||
-		(typeid(*geom)==typeid(Polygon)))
-	{
-		locations->push_back(new GeometryLocation(geom, 0, *(geom->getCoordinate())));
-	}
+    if((typeid(*geom) == typeid(Point)) ||
+            (typeid(*geom) == typeid(LineString)) ||
+            (typeid(*geom) == typeid(LinearRing)) ||
+            (typeid(*geom) == typeid(Polygon))) {
+        locations.emplace_back(new GeometryLocation(geom, 0, *(geom->getCoordinate())));
+    }
 }
 
-void ConnectedElementLocationFilter::filter_rw(Geometry *geom){
-	if ((typeid(*geom)==typeid(Point)) ||
-		(typeid(*geom)==typeid(LineString)) ||
-		(typeid(*geom)==typeid(LinearRing)) ||
-		(typeid(*geom)==typeid(Polygon)))
-			locations->push_back(new GeometryLocation(geom, 0, *(geom->getCoordinate())));
+void
+ConnectedElementLocationFilter::filter_rw(Geometry* geom)
+{
+    if((typeid(*geom) == typeid(Point)) ||
+            (typeid(*geom) == typeid(LineString)) ||
+            (typeid(*geom) == typeid(LinearRing)) ||
+            (typeid(*geom) == typeid(Polygon))) {
+        locations.emplace_back(new GeometryLocation(geom, 0, *(geom->getCoordinate())));
+    }
 }
 
 } // namespace geos.operation.distance

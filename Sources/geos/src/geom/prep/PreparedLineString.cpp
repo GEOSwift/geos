@@ -32,31 +32,27 @@ namespace prep { // geos.geom.prep
 
 PreparedLineString::~PreparedLineString()
 {
-	delete segIntFinder;
-	for ( noding::SegmentString::ConstVect::size_type i = 0,
-	     ni = segStrings.size(); i < ni; ++i )
-	{
-		delete segStrings[ i ];
-	}
+    for(noding::SegmentString::ConstVect::size_type i = 0,
+            ni = segStrings.size(); i < ni; ++i) {
+        delete segStrings[ i ];
+    }
 }
 
-noding::FastSegmentSetIntersectionFinder *
+noding::FastSegmentSetIntersectionFinder*
 PreparedLineString::getIntersectionFinder()
 {
-	if (! segIntFinder)
-	{
-		noding::SegmentStringUtil::extractSegmentStrings( &getGeometry(), segStrings );
-		segIntFinder = new noding::FastSegmentSetIntersectionFinder( &segStrings );
-	}
+    if(! segIntFinder) {
+        noding::SegmentStringUtil::extractSegmentStrings(&getGeometry(), segStrings);
+        segIntFinder.reset(new noding::FastSegmentSetIntersectionFinder(&segStrings));
+    }
 
-	return segIntFinder;
+    return segIntFinder.get();
 }
 
 bool
-PreparedLineString::intersects(const geom::Geometry * g) const
+PreparedLineString::intersects(const geom::Geometry* g) const
 {
-	if (! envelopesIntersect(g))
-    {
+    if(! envelopesIntersect(g)) {
         return false;
     }
 

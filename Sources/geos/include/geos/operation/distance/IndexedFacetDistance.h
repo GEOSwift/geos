@@ -22,26 +22,31 @@
 #include <geos/operation/distance/FacetSequenceTreeBuilder.h>
 
 namespace geos {
-    namespace operation {
-        namespace distance {
-            class GEOS_DLL IndexedFacetDistance {
-            public:
-                IndexedFacetDistance(const geom::Geometry * g) :
-                        cachedTree(FacetSequenceTreeBuilder::build(g))
-                        {}
+namespace operation {
+namespace distance {
+class GEOS_DLL IndexedFacetDistance {
+public:
+    IndexedFacetDistance(const geom::Geometry* g) :
+        cachedTree(FacetSequenceTreeBuilder::build(g))
+    {}
 
-                static double distance(const geom::Geometry * g1, const geom::Geometry * g2);
+    static double distance(const geom::Geometry* g1, const geom::Geometry* g2);
 
-                double getDistance(const geom::Geometry * g) const;
+    static std::vector<geom::Coordinate> nearestPoints(const geom::Geometry* g1, const geom::Geometry* g2);
 
-                ~IndexedFacetDistance();
+    double distance(const geom::Geometry* g) const;
 
-            private:
-                std::unique_ptr<geos::index::strtree::STRtree> cachedTree;
+    std::vector<GeometryLocation> nearestLocations(const geom::Geometry* g) const;
+    std::vector<geom::Coordinate> nearestPoints(const geom::Geometry* g) const;
 
-            };
-        }
-    }
+    ~IndexedFacetDistance();
+
+private:
+    std::unique_ptr<geos::index::strtree::STRtree> cachedTree;
+
+};
+}
+}
 }
 
 #endif //GEOS_INDEXEDFACETDISTANCE_H

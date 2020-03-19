@@ -18,7 +18,6 @@
  *
  **********************************************************************/
 
-#include <geos/algorithm/CGAlgorithms.h>
 #include <geos/geomgraph/GeometryGraph.h>
 #include <geos/geom/MultiLineString.h>
 #include <geos/geom/LineString.h>
@@ -41,87 +40,102 @@ namespace geos {
 namespace geom { // geos::geom
 
 /*protected*/
-MultiLineString::MultiLineString(vector<Geometry *> *newLines,
-		const GeometryFactory *factory)
-	:
-	Geometry(factory),
-	GeometryCollection(newLines,factory)
+MultiLineString::MultiLineString(vector<Geometry*>* newLines,
+                                 const GeometryFactory* factory)
+    :
+    GeometryCollection(newLines, factory)
 {
 }
 
-MultiLineString::~MultiLineString(){}
+MultiLineString::MultiLineString(std::vector<std::unique_ptr<LineString>> && newLines,
+        const GeometryFactory& factory)
+        : GeometryCollection(std::move(newLines), factory)
+{}
+
+MultiLineString::MultiLineString(std::vector<std::unique_ptr<Geometry>> && newLines,
+                                 const GeometryFactory& factory)
+        : GeometryCollection(std::move(newLines), factory)
+{}
 
 Dimension::DimensionType
-MultiLineString::getDimension() const {
-	return Dimension::L; // line
-}
-
-int MultiLineString::getBoundaryDimension() const {
-	if (isClosed()) {
-		return Dimension::False;
-	}
-	return 0;
-}
-
-string MultiLineString::getGeometryType() const {
-	return "MultiLineString";
-}
-
-bool MultiLineString::isClosed() const {
-	if (isEmpty()) {
-		return false;
-	}
-	for (size_t i = 0, n = geometries->size(); i < n; ++i) {
-		LineString *ls = dynamic_cast<LineString*>((*geometries)[i]);
-		if ( ! ls->isClosed() ) {
-			return false;
-		}
-	}
-	return true;
-}
-
-Geometry*
-MultiLineString::getBoundary() const
+MultiLineString::getDimension() const
 {
-	if (isEmpty()) {
-		return getFactory()->createGeometryCollection(nullptr);
-	}
-	//Geometry *in = toInternalGeometry(this);
-	GeometryGraph gg(0, this);
-	CoordinateSequence *pts=gg.getBoundaryPoints();
-	Geometry *ret = getFactory()->createMultiPoint(*pts);
-	return ret;
+    return Dimension::L; // line
+}
+
+int
+MultiLineString::getBoundaryDimension() const
+{
+    if(isClosed()) {
+        return Dimension::False;
+    }
+    return 0;
+}
+
+string
+MultiLineString::getGeometryType() const
+{
+    return "MultiLineString";
 }
 
 bool
-MultiLineString::equalsExact(const Geometry *other, double tolerance) const
+MultiLineString::isClosed() const
 {
-    if (!isEquivalentClass(other)) {
-      return false;
+    if(isEmpty()) {
+        return false;
     }
-	return GeometryCollection::equalsExact(other, tolerance);
+    for(const auto& g : geometries) {
+        LineString* ls = dynamic_cast<LineString*>(g.get());
+        if(! ls->isClosed()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::unique_ptr<Geometry>
+MultiLineString::getBoundary() const
+{
+    if(isEmpty()) {
+        return getFactory()->createGeometryCollection();
+    }
+
+    GeometryGraph gg(0, this);
+    CoordinateSequence* pts = gg.getBoundaryPoints();
+    return std::unique_ptr<Geometry>(getFactory()->createMultiPoint(*pts));
+}
+
+bool
+MultiLineString::equalsExact(const Geometry* other, double tolerance) const
+{
+    if(!isEquivalentClass(other)) {
+        return false;
+    }
+    return GeometryCollection::equalsExact(other, tolerance);
 }
 GeometryTypeId
-MultiLineString::getGeometryTypeId() const {
-	return GEOS_MULTILINESTRING;
+MultiLineString::getGeometryTypeId() const
+{
+    return GEOS_MULTILINESTRING;
 }
 
-Geometry*
+std::unique_ptr<Geometry>
 MultiLineString::reverse() const
 {
-	if (isEmpty()) {
-		return clone();
-	}
+    if(isEmpty()) {
+        return clone();
+    }
 
-	size_t nLines = geometries->size();
-	Geometry::NonConstVect *revLines = new Geometry::NonConstVect(nLines);
-	for (size_t i=0; i<nLines; ++i)
-	{
-		LineString *iLS = dynamic_cast<LineString*>((*geometries)[i]);
-		assert(iLS);
-		(*revLines)[nLines-1-i] = iLS->reverse();
-	}
-	return getFactory()->createMultiLineString(revLines);
+    std::vector<std::unique_ptr<Geometry>> reversed(geometries.size());
+
+    std::transform(geometries.begin(),
+                   geometries.end(),
+                   reversed.begin(),
+                   [](const std::unique_ptr<Geometry> & g) {
+                       return g->reverse();
+                   });
+
+    return getFactory()->createMultiLineString(std::move(reversed));
 }
 
 } // namespace geos::geom

@@ -25,13 +25,13 @@
 
 // forward declarations
 namespace geos {
-	namespace geom {
-		class Geometry;
+namespace geom {
+class Geometry;
 
-		namespace prep {
-			class PreparedPolygon;
-		}
-	}
+namespace prep {
+class PreparedPolygon;
+}
+}
 }
 
 
@@ -62,71 +62,80 @@ namespace prep { // geos::geom::prep
  * @author Martin Davis
  *
  */
-class AbstractPreparedPolygonContains : public PreparedPolygonPredicate
-{
+class AbstractPreparedPolygonContains : public PreparedPolygonPredicate {
 private:
-	// information about geometric situation
-	bool hasSegmentIntersection;
-	bool hasProperIntersection;
-	bool hasNonProperIntersection;
+    // information about geometric situation
+    bool hasSegmentIntersection;
+    bool hasProperIntersection;
+    bool hasNonProperIntersection;
 
-	bool isProperIntersectionImpliesNotContainedSituation( const geom::Geometry * testGeom);
+    bool isProperIntersectionImpliesNotContainedSituation(const geom::Geometry* testGeom);
 
-	/**
-	 * Tests whether a geometry consists of a single polygon with no holes.
-	 *
-	 * @return true if the geometry is a single polygon with no holes
-	 */
-	bool isSingleShell( const geom::Geometry & geom);
+    /**
+     * Tests whether a geometry consists of a single polygon with no holes.
+     *
+     * @return true if the geometry is a single polygon with no holes
+     */
+    bool isSingleShell(const geom::Geometry& geom);
 
-	void findAndClassifyIntersections( const geom::Geometry * geom);
+    void findAndClassifyIntersections(const geom::Geometry* geom);
 
 protected:
-	/**
-	 * This flag controls a difference between contains and covers.
-	 *
-	 * For contains the value is true.
-	 * For covers the value is false.
-	 */
-	bool requireSomePointInInterior;
+    /**
+     * This flag controls a difference between contains and covers.
+     *
+     * For contains the value is true.
+     * For covers the value is false.
+     */
+    bool requireSomePointInInterior;
 
-	/**
-	 * Evaluate the <tt>contains</tt> or <tt>covers</tt> relationship
-	 * for the given geometry.
-	 *
-	 * @param geom the test geometry
-	 * @return true if the test geometry is contained
-	 */
-	bool eval( const geom::Geometry * geom);
+    /**
+     * Evaluate the <tt>contains</tt> or <tt>covers</tt> relationship
+     * for the given geometry.
+     *
+     * @param geom the test geometry
+     * @return true if the test geometry is contained
+     */
+    bool eval(const geom::Geometry* geom);
 
- 	/**
- 	 * Computes the full topological predicate.
-	 * Used when short-circuit tests are not conclusive.
-	 *
-	 * @param geom the test geometry
-	 * @return true if this prepared polygon has the relationship with the test geometry
-	 */
-	virtual bool fullTopologicalPredicate( const geom::Geometry * geom) =0;
+    /**
+     * Evaluate the <tt>contains</tt> or <tt>covers</tt> relationship
+     * for the given Puntal geometry.
+     *
+     * @param geom the test geometry
+     * @param outermostLoc outermost Location of all points in geom
+     * @return true if the test geometry is contained/covered in the target
+     */
+    bool evalPointTestGeom(const geom::Geometry* geom, geom::Location outermostLoc);
+
+    /**
+     * Computes the full topological predicate.
+     * Used when short-circuit tests are not conclusive.
+     *
+     * @param geom the test geometry
+     * @return true if this prepared polygon has the relationship with the test geometry
+     */
+    virtual bool fullTopologicalPredicate(const geom::Geometry* geom) = 0;
 
 public:
-	AbstractPreparedPolygonContains( const PreparedPolygon * const prepPoly)
-	:	PreparedPolygonPredicate( prepPoly),
-		hasSegmentIntersection( false),
-		hasProperIntersection( false),
-		hasNonProperIntersection( false),
-		requireSomePointInInterior(true)
-	{ }
+    AbstractPreparedPolygonContains(const PreparedPolygon* const p_prepPoly)
+        :	PreparedPolygonPredicate(p_prepPoly),
+          hasSegmentIntersection(false),
+          hasProperIntersection(false),
+          hasNonProperIntersection(false),
+          requireSomePointInInterior(true)
+    { }
 
-	AbstractPreparedPolygonContains( const PreparedPolygon * const prepPoly, bool requireSomePointInInterior)
-	:	PreparedPolygonPredicate( prepPoly),
-		hasSegmentIntersection( false),
-		hasProperIntersection( false),
-		hasNonProperIntersection( false),
-		requireSomePointInInterior(requireSomePointInInterior)
-	{ }
+    AbstractPreparedPolygonContains(const PreparedPolygon* const p_prepPoly, bool p_requireSomePointInInterior)
+        :	PreparedPolygonPredicate(p_prepPoly),
+          hasSegmentIntersection(false),
+          hasProperIntersection(false),
+          hasNonProperIntersection(false),
+          requireSomePointInInterior(p_requireSomePointInInterior)
+    { }
 
-	~AbstractPreparedPolygonContains() override
-	{ }
+    ~AbstractPreparedPolygonContains() override
+    { }
 
 };
 

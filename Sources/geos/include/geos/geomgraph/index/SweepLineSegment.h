@@ -16,21 +16,21 @@
 #ifndef GEOS_GEOMGRAPH_INDEX_SWEEPLINESEGMENT_H
 #define GEOS_GEOMGRAPH_INDEX_SWEEPLINESEGMENT_H
 
-
+#include <cstddef>
 #include <geos/export.h>
 #include <geos/geomgraph/index/SweepLineEventObj.h> // for inheritance
 
 // Forward declarations
 namespace geos {
-	namespace geom {
-		class CoordinateSequence;
-	}
-	namespace geomgraph {
-		class Edge;
-		namespace index {
-			class SegmentIntersector;
-		}
-	}
+namespace geom {
+class CoordinateSequence;
+}
+namespace geomgraph {
+class Edge;
+namespace index {
+class SegmentIntersector;
+}
+}
 }
 
 namespace geos {
@@ -39,15 +39,15 @@ namespace index { // geos::geomgraph::index
 
 class GEOS_DLL SweepLineSegment: public SweepLineEventOBJ {
 public:
-	SweepLineSegment(Edge *newEdge, int newPtIndex);
-	~SweepLineSegment() override;
-	double getMinX();
-	double getMaxX();
-	void computeIntersections(SweepLineSegment *ss, SegmentIntersector *si);
+    SweepLineSegment(Edge* newEdge, size_t newPtIndex);
+    ~SweepLineSegment() override = default;
+    double getMinX();
+    double getMaxX();
+    void computeIntersections(SweepLineSegment* ss, SegmentIntersector* si);
 protected:
-	Edge *edge;
-	const geom::CoordinateSequence* pts;
-	int ptIndex;
+    Edge* edge;
+    const geom::CoordinateSequence* pts;
+    size_t ptIndex;
 };
 
 

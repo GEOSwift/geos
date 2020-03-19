@@ -28,11 +28,11 @@ namespace index { // geos.index
 namespace chain { // geos.index.chain
 
 void
-MonotoneChainSelectAction::select(MonotoneChain& mc, unsigned int start)
+MonotoneChainSelectAction::select(MonotoneChain& mc, size_t start)
 {
-	mc.getLineSegment(start, selectedSegment);
+    mc.getLineSegment(start, selectedSegment);
 
-	select(selectedSegment);
+    select(selectedSegment);
 }
 
 } // namespace geos.index.chain

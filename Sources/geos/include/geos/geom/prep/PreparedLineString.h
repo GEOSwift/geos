@@ -22,12 +22,9 @@
 
 #include <geos/geom/prep/BasicPreparedGeometry.h> // for inheritance
 #include <geos/noding/SegmentString.h>
+#include <geos/noding/FastSegmentSetIntersectionFinder.h>
 
-namespace geos {
-	namespace noding {
-		class FastSegmentSetIntersectionFinder;
-	}
-}
+#include <memory>
 
 namespace geos {
 namespace geom { // geos::geom
@@ -40,25 +37,24 @@ namespace prep { // geos::geom::prep
  * @author mbdavis
  *
  */
-class PreparedLineString : public BasicPreparedGeometry
-{
+class PreparedLineString : public BasicPreparedGeometry {
 private:
-	noding::FastSegmentSetIntersectionFinder * segIntFinder;
-	mutable noding::SegmentString::ConstVect segStrings;
+    std::unique_ptr<noding::FastSegmentSetIntersectionFinder> segIntFinder;
+    mutable noding::SegmentString::ConstVect segStrings;
 
 protected:
 public:
-	PreparedLineString(const Geometry * geom)
-		:
-		BasicPreparedGeometry( geom),
-		segIntFinder( nullptr)
-	{ }
+    PreparedLineString(const Geometry* geom)
+        :
+        BasicPreparedGeometry(geom),
+        segIntFinder(nullptr)
+    { }
 
-	~PreparedLineString() override;
+    ~PreparedLineString() override;
 
-	noding::FastSegmentSetIntersectionFinder * getIntersectionFinder();
+    noding::FastSegmentSetIntersectionFinder* getIntersectionFinder();
 
-	bool intersects(const geom::Geometry * g) const override;
+    bool intersects(const geom::Geometry* g) const override;
 
 };
 

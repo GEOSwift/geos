@@ -14,28 +14,28 @@
  **********************************************************************/
 
 #include <geos/algorithm/SimplePointInRing.h>
-#include <geos/algorithm/CGAlgorithms.h>
+#include <geos/algorithm/PointLocation.h>
 #include <geos/geom/LinearRing.h>
 
 // Forward declarations
 namespace geos {
-	namespace geom {
-		class Coordinate;
-	}
+namespace geom {
+class Coordinate;
+}
 }
 
 namespace geos {
 namespace algorithm { // geos.algorithm
 
-SimplePointInRing::SimplePointInRing(geom::LinearRing *ring){
-	pts=ring->getCoordinatesRO();
+SimplePointInRing::SimplePointInRing(geom::LinearRing* ring)
+{
+    pts = ring->getCoordinatesRO();
 }
 
-SimplePointInRing::~SimplePointInRing(){
-}
-
-bool SimplePointInRing::isInside(const geom::Coordinate& pt){
-	return CGAlgorithms::isPointInRing(pt,pts);
+bool
+SimplePointInRing::isInside(const geom::Coordinate& pt)
+{
+    return PointLocation::isInRing(pt, pts);
 }
 
 } // namespace geos.algorithm

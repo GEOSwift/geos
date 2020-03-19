@@ -25,11 +25,10 @@
 
 // Forward declarations
 namespace geos {
-    namespace geom {
-        class GeometryFactory;
-        class Geometry;
-        class Puntal;
-    }
+namespace geom {
+class GeometryFactory;
+class Geometry;
+}
 }
 
 namespace geos {
@@ -38,34 +37,33 @@ namespace geounion {  // geos::operation::geounion
 
 /**
  * \brief
- * Computes the union of a {@link Puntal} geometry with
- * another arbitrary {@link Geometry}.
+ * Computes the union of a puntal geometry with another
+ * arbitrary [Geometry](@ref geom::Geometry).
  *
  * Does not copy any component geometries.
  *
  */
-class GEOS_DLL PointGeometryUnion
-{
+class GEOS_DLL PointGeometryUnion {
 public:
 
-  static std::unique_ptr<geom::Geometry> Union(
-      const geom::Puntal& pointGeom,
-      const geom::Geometry& otherGeom);
+    static std::unique_ptr<geom::Geometry> Union(
+        const geom::Geometry& pointGeom,
+        const geom::Geometry& otherGeom);
 
 
-  PointGeometryUnion(const geom::Puntal& pointGeom,
-                     const geom::Geometry& otherGeom);
+    PointGeometryUnion(const geom::Geometry& pointGeom,
+                       const geom::Geometry& otherGeom);
 
-  std::unique_ptr<geom::Geometry> Union() const;
+    std::unique_ptr<geom::Geometry> Union() const;
 
 private:
-  const geom::Geometry& pointGeom;
-  const geom::Geometry& otherGeom;
-  const geom::GeometryFactory* geomFact;
+    const geom::Geometry& pointGeom;
+    const geom::Geometry& otherGeom;
+    const geom::GeometryFactory* geomFact;
 
-  // Declared as non-copyable
-  PointGeometryUnion(const PointGeometryUnion& other);
-  PointGeometryUnion& operator=(const PointGeometryUnion& rhs);
+    // Declared as non-copyable
+    PointGeometryUnion(const PointGeometryUnion& other);
+    PointGeometryUnion& operator=(const PointGeometryUnion& rhs);
 };
 
 } // namespace geos::operation::union
