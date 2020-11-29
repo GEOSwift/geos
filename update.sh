@@ -6,7 +6,7 @@ rm -rf .update
 git clone https://git.osgeo.org/gitea/geos/geos.git .update
 
 cd .update
-git checkout 3.8.1
+git checkout 3.9.0
 sh autogen.sh
 ./configure
 

@@ -32,9 +32,6 @@
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 /* #undef HAVE_DOPRNT */
 
-/* Has finite */
-#define HAVE_FINITE 1
-
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
 
@@ -47,17 +44,11 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Has isfinite */
-#define HAVE_ISFINITE 1
-
-/* Has isnan */
-#define HAVE_ISNAN 1
-
 /* Define to 1 if `long int' works and is 64 bits. */
 /* #undef HAVE_LONG_INT_64 */
 
 /* Define to 1 if `long long int' works and is 64 bits. */
-#define HAVE_LONG_LONG_INT_64 1
+/* #undef HAVE_LONG_LONG_INT_64 */
 
 /* Define to 1 if you have the `memcpy' function. */
 #define HAVE_MEMCPY 1
@@ -132,6 +123,9 @@
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
+
+/* The size of `void *', as computed by sizeof. */
+#define SIZEOF_VOID_P 8
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
