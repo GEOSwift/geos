@@ -15,7 +15,7 @@ in your Swift or Objective-C project. It is commonly used via
 
 ## Requirements
 
-* iOS 8.0+, macOS 10.7+, tvOS 9.0+ (CocoaPods, Carthage, Swift PM)
+* iOS 9.0+, macOS 10.9+, tvOS 9.0+ (CocoaPods, Carthage, Swift PM)
 * Linux (Swift PM)
 
 > GEOS is licensed under LGPL 2.1 and its compatibility with static linking is
@@ -34,7 +34,7 @@ at least controversial. Use of geos without dynamic linking is discouraged.
 
 1. Update your `Cartfile` to include:
 
-        github "GEOSwift/geos" ~> 5.1.0
+        github "GEOSwift/geos" ~> 6.0.0
 
 2. Finish updating your project by following the [typical Carthage
 workflow](https://github.com/Carthage/Carthage#quick-start).
@@ -43,7 +43,7 @@ workflow](https://github.com/Carthage/Carthage#quick-start).
 
 1. Update the top-level dependencies in your `Package.swift` to include:
 
-        .package(url: "https://github.com/GEOSwift/geos.git", from: "5.1.0")
+        .package(url: "https://github.com/GEOSwift/geos.git", from: "6.0.0")
 
 2. Update the target dependencies in your `Package.swift` to include
 

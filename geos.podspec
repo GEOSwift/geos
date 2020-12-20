@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'geos'
-  s.version = '5.1.0'
+  s.version = '6.0.0'
   s.summary = 'GEOS (Geometry Engine - Open Source) is a C++ port of the Java Topology Suite (JTS).'
   s.homepage = 'http://trac.osgeo.org/geos'
   s.license = {
@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
     git: 'https://github.com/GEOSwift/geos.git',
     tag: s.version
   }
-  s.platforms = { ios: '8.0', osx: '10.7', tvos: '9.0' }
+  s.platforms = { ios: '9.0', osx: '10.9', tvos: '9.0' }
   s.preserve_paths = 'Sources/geos/**/*'
   s.source_files = 'Sources/geos/{src,capi,public}/**/*'
   s.public_header_files = 'Sources/geos/public/**/*'
