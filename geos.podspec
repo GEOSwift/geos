@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'geos'
-  s.version = '6.0.1'
+  s.version = '6.0.2'
   s.summary = 'GEOS (Geometry Engine - Open Source) is a C++ port of the Java Topology Suite (JTS).'
   s.homepage = 'http://trac.osgeo.org/geos'
   s.license = {
