@@ -616,9 +616,6 @@
 		49AB2574258E827D00B3DC1B /* RayCrossingCounter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D56258E827800B3DC1B /* RayCrossingCounter.cpp */; };
 		49AB2575258E827D00B3DC1B /* RayCrossingCounter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D56258E827800B3DC1B /* RayCrossingCounter.cpp */; };
 		49AB2576258E827D00B3DC1B /* RayCrossingCounter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D56258E827800B3DC1B /* RayCrossingCounter.cpp */; };
-		49AB2577258E827D00B3DC1B /* SimplePointInRing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D57258E827800B3DC1B /* SimplePointInRing.cpp */; };
-		49AB2578258E827D00B3DC1B /* SimplePointInRing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D57258E827800B3DC1B /* SimplePointInRing.cpp */; };
-		49AB2579258E827D00B3DC1B /* SimplePointInRing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D57258E827800B3DC1B /* SimplePointInRing.cpp */; };
 		49AB257A258E827D00B3DC1B /* LargestEmptyCircle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D59258E827800B3DC1B /* LargestEmptyCircle.cpp */; };
 		49AB257B258E827D00B3DC1B /* LargestEmptyCircle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D59258E827800B3DC1B /* LargestEmptyCircle.cpp */; };
 		49AB257C258E827D00B3DC1B /* LargestEmptyCircle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49AB1D59258E827800B3DC1B /* LargestEmptyCircle.cpp */; };
@@ -1286,7 +1283,6 @@
 		49AB1B6D258E827700B3DC1B /* PlanarGraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlanarGraph.h; sourceTree = "<group>"; };
 		49AB1B6E258E827700B3DC1B /* inline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inline.h; sourceTree = "<group>"; };
 		49AB1B70258E827700B3DC1B /* InteriorPointArea.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InteriorPointArea.h; sourceTree = "<group>"; };
-		49AB1B71258E827700B3DC1B /* PointInRing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PointInRing.h; sourceTree = "<group>"; };
 		49AB1B72258E827700B3DC1B /* HCoordinate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HCoordinate.h; sourceTree = "<group>"; };
 		49AB1B74258E827700B3DC1B /* IndexedPointInAreaLocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IndexedPointInAreaLocator.h; sourceTree = "<group>"; };
 		49AB1B75258E827700B3DC1B /* SimplePointInAreaLocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimplePointInAreaLocator.h; sourceTree = "<group>"; };
@@ -1295,7 +1291,6 @@
 		49AB1B78258E827700B3DC1B /* Intersection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Intersection.h; sourceTree = "<group>"; };
 		49AB1B79258E827700B3DC1B /* Orientation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Orientation.h; sourceTree = "<group>"; };
 		49AB1B7A258E827700B3DC1B /* Distance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Distance.h; sourceTree = "<group>"; };
-		49AB1B7B258E827700B3DC1B /* SimplePointInRing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimplePointInRing.h; sourceTree = "<group>"; };
 		49AB1B7C258E827700B3DC1B /* InteriorPointPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InteriorPointPoint.h; sourceTree = "<group>"; };
 		49AB1B7D258E827700B3DC1B /* MinimumBoundingCircle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MinimumBoundingCircle.h; sourceTree = "<group>"; };
 		49AB1B7F258E827700B3DC1B /* PointPairDistance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PointPairDistance.h; sourceTree = "<group>"; };
@@ -1515,7 +1510,6 @@
 		49AB1C6A258E827800B3DC1B /* IteratedNoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IteratedNoder.h; sourceTree = "<group>"; };
 		49AB1C6B258E827800B3DC1B /* geom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geom.h; sourceTree = "<group>"; };
 		49AB1C6C258E827800B3DC1B /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
-		49AB1C6D258E827800B3DC1B /* acconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = acconfig.h; sourceTree = "<group>"; };
 		49AB1C6E258E827800B3DC1B /* geos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geos.h; sourceTree = "<group>"; };
 		49AB1C71258E827800B3DC1B /* export.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = export.h; sourceTree = "<group>"; };
 		49AB1C72258E827800B3DC1B /* geos_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geos_c.h; sourceTree = "<group>"; };
@@ -1719,7 +1713,6 @@
 		49AB1D54258E827800B3DC1B /* Area.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Area.cpp; sourceTree = "<group>"; };
 		49AB1D55258E827800B3DC1B /* RayCrossingCounterDD.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RayCrossingCounterDD.cpp; sourceTree = "<group>"; };
 		49AB1D56258E827800B3DC1B /* RayCrossingCounter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RayCrossingCounter.cpp; sourceTree = "<group>"; };
-		49AB1D57258E827800B3DC1B /* SimplePointInRing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SimplePointInRing.cpp; sourceTree = "<group>"; };
 		49AB1D59258E827800B3DC1B /* LargestEmptyCircle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LargestEmptyCircle.cpp; sourceTree = "<group>"; };
 		49AB1D5A258E827800B3DC1B /* MaximumInscribedCircle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MaximumInscribedCircle.cpp; sourceTree = "<group>"; };
 		49AB1D5B258E827800B3DC1B /* CGAlgorithmsDD.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CGAlgorithmsDD.cpp; sourceTree = "<group>"; };
@@ -1938,7 +1931,6 @@
 			children = (
 				49AB1A8F258E827700B3DC1B /* geos */,
 				49AB1C6C258E827800B3DC1B /* config.h */,
-				49AB1C6D258E827800B3DC1B /* acconfig.h */,
 				49AB1C6E258E827800B3DC1B /* geos.h */,
 			);
 			path = include;
@@ -2361,14 +2353,12 @@
 			isa = PBXGroup;
 			children = (
 				49AB1B70258E827700B3DC1B /* InteriorPointArea.h */,
-				49AB1B71258E827700B3DC1B /* PointInRing.h */,
 				49AB1B72258E827700B3DC1B /* HCoordinate.h */,
 				49AB1B73258E827700B3DC1B /* locate */,
 				49AB1B77258E827700B3DC1B /* ConvexHull.inl */,
 				49AB1B78258E827700B3DC1B /* Intersection.h */,
 				49AB1B79258E827700B3DC1B /* Orientation.h */,
 				49AB1B7A258E827700B3DC1B /* Distance.h */,
-				49AB1B7B258E827700B3DC1B /* SimplePointInRing.h */,
 				49AB1B7C258E827700B3DC1B /* InteriorPointPoint.h */,
 				49AB1B7D258E827700B3DC1B /* MinimumBoundingCircle.h */,
 				49AB1B7E258E827700B3DC1B /* distance */,
@@ -3188,7 +3178,6 @@
 				49AB1D54258E827800B3DC1B /* Area.cpp */,
 				49AB1D55258E827800B3DC1B /* RayCrossingCounterDD.cpp */,
 				49AB1D56258E827800B3DC1B /* RayCrossingCounter.cpp */,
-				49AB1D57258E827800B3DC1B /* SimplePointInRing.cpp */,
 				49AB1D58258E827800B3DC1B /* construct */,
 				49AB1D5B258E827800B3DC1B /* CGAlgorithmsDD.cpp */,
 				49AB1D5C258E827800B3DC1B /* Angle.cpp */,
@@ -4020,7 +4009,6 @@
 				49AB23E5258E827C00B3DC1B /* OverlayNGRobust.cpp in Sources */,
 				49AB2484258E827C00B3DC1B /* SnapOverlayOp.cpp in Sources */,
 				49AB2439258E827C00B3DC1B /* CascadedUnion.cpp in Sources */,
-				49AB2577258E827D00B3DC1B /* SimplePointInRing.cpp in Sources */,
 				49AB237C258E827B00B3DC1B /* IndexedNestedShellTester.cpp in Sources */,
 				49AB236A258E827B00B3DC1B /* Edge.cpp in Sources */,
 				49AB2574258E827D00B3DC1B /* RayCrossingCounter.cpp in Sources */,
@@ -4382,7 +4370,6 @@
 				49AB23E6258E827C00B3DC1B /* OverlayNGRobust.cpp in Sources */,
 				49AB2485258E827C00B3DC1B /* SnapOverlayOp.cpp in Sources */,
 				49AB243A258E827C00B3DC1B /* CascadedUnion.cpp in Sources */,
-				49AB2578258E827D00B3DC1B /* SimplePointInRing.cpp in Sources */,
 				49AB237D258E827B00B3DC1B /* IndexedNestedShellTester.cpp in Sources */,
 				49AB236B258E827B00B3DC1B /* Edge.cpp in Sources */,
 				49AB2575258E827D00B3DC1B /* RayCrossingCounter.cpp in Sources */,
@@ -4744,7 +4731,6 @@
 				49AB23E7258E827C00B3DC1B /* OverlayNGRobust.cpp in Sources */,
 				49AB2486258E827C00B3DC1B /* SnapOverlayOp.cpp in Sources */,
 				49AB243B258E827C00B3DC1B /* CascadedUnion.cpp in Sources */,
-				49AB2579258E827D00B3DC1B /* SimplePointInRing.cpp in Sources */,
 				49AB237E258E827B00B3DC1B /* IndexedNestedShellTester.cpp in Sources */,
 				49AB236C258E827B00B3DC1B /* Edge.cpp in Sources */,
 				49AB2576258E827D00B3DC1B /* RayCrossingCounter.cpp in Sources */,

@@ -3,23 +3,23 @@
 set -e
 
 rm -rf .update
-git clone https://git.osgeo.org/gitea/geos/geos.git .update
+mkdir .update
 
-cd .update
-git checkout 3.9.0
-sh autogen.sh
+pushd .update
+curl http://download.osgeo.org/geos/geos-3.9.1.tar.bz2 | bunzip2 | tar --strip-components=1 -x
 ./configure
+popd
 
-cd ..
-mkdir Sources.new
-mkdir Sources.new/geos
-cp .update/COPYING Sources.new/
-cp -R .update/include Sources.new/geos/
-cp -R .update/capi Sources.new/geos/
-cp -R .update/src Sources.new/geos/
+rm -rf Sources
+mkdir Sources
+mkdir Sources/geos
+cp .update/COPYING Sources/
+cp -R .update/include Sources/geos/
+cp -R .update/capi Sources/geos/
+cp -R .update/src Sources/geos/
 rm -rf .update
 
-cd Sources.new/geos
+pushd Sources/geos
 find . ! \( -name '*.cpp' -o -name '*.h' -o -name '*.inl' \) -type f -exec rm -f {} +
 find . -type d -empty -delete
 
@@ -34,6 +34,4 @@ echo "\
 $(cat public/geos_c.h)\n\
 #pragma clang diagnostic pop" > public/geos_c.h
 
-cd ../..
-mv Sources Sources.old
-mv Sources.new Sources
+popd
