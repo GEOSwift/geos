@@ -1,22 +1,21 @@
 # GEOS
 
+[![Swift Package Manager Compatible](https://img.shields.io/badge/SwiftPM-compatible-4BC51D.svg?style=flat)](https://swift.org/package-manager/)
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/geos.svg)](https://cocoapods.org)
-[![Carthage Compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
-[![SwiftPM Compatible](https://img.shields.io/badge/SwiftPM-compatible-4BC51D.svg?style=flat)](https://swift.org/package-manager/)
 [![Platform](https://img.shields.io/cocoapods/p/geos.svg?style=flat)](https://github.com/GEOSwift/geos)
 
 ## Podspec
 
 GEOS is an open source C++ library for working with geospatial geometry. Learn
 more on its [homepage](http://trac.osgeo.org/geos). This repo makes its C
-interface available through CocoaPods, Carthage, and Swift PM so you can use it
-in your Swift or Objective-C project. It is commonly used via
+interface available through Swift Package Manager and CocoaPods so you can use
+it in your Swift or Objective-C project. It is commonly used via
 [GEOSwift](https://github.com/GEOSwift/GEOSwift).
 
 ## Requirements
 
-* iOS 9.0+, macOS 10.9+, tvOS 9.0+ (CocoaPods, Carthage, Swift PM)
-* Linux (Swift PM)
+* iOS 9.0+, macOS 10.9+, tvOS 9.0+ (Swift Package Manager, CocoaPods)
+* Linux (Swift Package Manager)
 
 > GEOS is licensed under LGPL 2.1 and its compatibility with static linking is
 at least controversial. Use of geos without dynamic linking is discouraged.
@@ -30,20 +29,11 @@ at least controversial. Use of geos without dynamic linking is discouraged.
 
 2. Run `$ pod install`
 
-## Installing with Carthage
-
-1. Update your `Cartfile` to include:
-
-        github "GEOSwift/geos" ~> 6.0.2
-
-2. Finish updating your project by following the [typical Carthage
-workflow](https://github.com/Carthage/Carthage#quick-start).
-
-## Installing with Swift PM
+## Installing with Swift Package Manager
 
 1. Update the top-level dependencies in your `Package.swift` to include:
 
-        .package(url: "https://github.com/GEOSwift/geos.git", from: "6.0.2")
+        .package(url: "https://github.com/GEOSwift/geos.git", from: "7.0.0")
 
 2. Update the target dependencies in your `Package.swift` to include
 
@@ -80,16 +70,15 @@ details.
 The most common development activity is updating to a new version of GEOS. To
 get started:
 
-1. Install autotools: `$ brew install autoconf automake libtool`
+1. Install cmake: `$ brew install cmake`
 2. Modify `update.sh` to indicate the version of GEOS that you wish to use.
 3. Run `update.sh`
 4. Debug any issues. The script may need to be modified to work with newer
 versions of the library. Please keep it up-to-date so that we have a record of
 how to get from the GEOS source to the end result in this repo.
-5. Update `geos.podspec`, `geos.xcodeproj`, and `Package.swift` to ensure
-continued support for CocoaPods, Carthage, and Swift PM.
-6. Test all your changes on the full matrix of supported configs (CocoaPods,
-Carthage, Swift PM) x (iOS, macOS, tvOS) + Swift PM x Linux.
-7. Update the version numbers in `Resources/Info.plist`, `geos.podspec`,
-and `README.md`
+5. Update `Package.swift` and `geos.podspec` to ensure
+continued support for Swift Package Manager and CocoaPods.
+6. Test all your changes on the full matrix of supported configs
+(Swift Package Manager, CocoaPods) x (iOS, macOS, tvOS) + Swift PackageManager x Linux.
+7. Update the version numbers in `geos.podspec` and `README.md`
 8. Update this README with any relevant information.
