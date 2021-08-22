@@ -6,8 +6,8 @@ rm -rf .update
 mkdir .update
 
 pushd .update
-curl http://download.osgeo.org/geos/geos-3.9.1.tar.bz2 | bunzip2 | tar --strip-components=1 -x
-./configure
+curl https://download.osgeo.org/geos/geos-3.10.1.tar.bz2 | bunzip2 | tar --strip-components=1 -x
+cmake -DCMAKE_BUILD_TYPE=Release .
 popd
 
 rm -rf Sources
@@ -20,18 +20,12 @@ cp -R .update/src Sources/geos/
 rm -rf .update
 
 pushd Sources/geos
-find . ! \( -name '*.cpp' -o -name '*.h' -o -name '*.inl' \) -type f -exec rm -f {} +
+find . ! \( -name '*.cpp' -o -name '*.c' -o -name '*.h' -o -name '*.hpp' -o -name '*.inl' \) -type f -exec rm -f {} +
 find . -type d -empty -delete
 
 mkdir public
 mkdir public/geos
 mv capi/geos_c.h public/
 mv include/geos/export.h public/geos/
-
-echo "\
-#pragma clang diagnostic push\n\
-#pragma clang diagnostic ignored \"-Wstrict-prototypes\"\n\
-$(cat public/geos_c.h)\n\
-#pragma clang diagnostic pop" > public/geos_c.h
 
 popd
