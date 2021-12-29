@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   }
   s.platforms = {
     ios: '9.0',
-    macos: '10.9',
+    osx: '10.9',
     tvos: '9.0',
     watchos: '2.0',
   }
@@ -23,6 +23,7 @@ Pod::Spec.new do |s|
   s.public_header_files = 'Sources/geos/public/**/*'
   s.user_target_xcconfig = {
     'GCC_PREPROCESSOR_DEFINITIONS' => 'GEOS_USE_ONLY_R_API',
+    'CLANG_WARN_DOCUMENTATION_COMMENTS' => 'NO',
   }
   s.pod_target_xcconfig = {
     'HEADER_SEARCH_PATHS' => '${PODS_ROOT}/geos/Sources/geos/include ${PODS_ROOT}/geos/Sources/geos/public ${PODS_ROOT}/geos/Sources/geos/src/deps',
