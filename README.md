@@ -3,22 +3,25 @@
 [![Swift Package Manager Compatible](https://img.shields.io/badge/SwiftPM-compatible-4BC51D.svg?style=flat)](https://swift.org/package-manager/)
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/geos.svg)](https://cocoapods.org)
 [![Platform](https://img.shields.io/cocoapods/p/geos.svg?style=flat)](https://github.com/GEOSwift/geos)
-
-## Podspec
+[![GEOSwift/geos](https://github.com/GEOSwift/geos/actions/workflows/main.yml/badge.svg)](https://github.com/GEOSwift/geos/actions/workflows/main.yml)
 
 GEOS is an open source C++ library for working with geospatial geometry. Learn
-more on its [homepage](http://trac.osgeo.org/geos). This repo makes its C
-interface available through Swift Package Manager and CocoaPods so you can use
+more on its [homepage](https://libgeos.org). This repo makes its C interface
+available through Swift Package Manager and CocoaPods so you can use
 it in your Swift or Objective-C project. It is commonly used via
 [GEOSwift](https://github.com/GEOSwift/GEOSwift).
 
 ## Requirements
 
-* iOS 9.0+, macOS 10.9+, tvOS 9.0+ (Swift Package Manager, CocoaPods)
+* iOS 9.0+, macOS 10.9+, tvOS 9.0+, watchOS 2.0+ (Swift Package Manager, CocoaPods)
 * Linux (Swift Package Manager)
 
 > GEOS is licensed under LGPL 2.1 and its compatibility with static linking is
 at least controversial. Use of geos without dynamic linking is discouraged.
+
+## Upstream Version
+
+GEOSwift/geos 7.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.10.1
 
 ## Installing with CocoaPods
 
