@@ -26,7 +26,7 @@ Pod::Spec.new do |s|
     'CLANG_WARN_DOCUMENTATION_COMMENTS' => 'NO',
   }
   s.pod_target_xcconfig = {
-    'HEADER_SEARCH_PATHS' => '${PODS_ROOT}/geos/Sources/geos/include ${PODS_ROOT}/geos/Sources/geos/public ${PODS_ROOT}/geos/Sources/geos/src/deps',
+    'HEADER_SEARCH_PATHS' => '${PODS_TARGET_SRCROOT}/Sources/geos/include ${PODS_TARGET_SRCROOT}/Sources/geos/public ${PODS_TARGET_SRCROOT}/Sources/geos/src/deps',
     'GCC_PREPROCESSOR_DEFINITIONS' => 'USE_UNSTABLE_GEOS_CPP_API GEOS_INLINE NDEBUG',
     'CLANG_WARN_DOCUMENTATION_COMMENTS' => 'NO',
     'CLANG_WARN_UNREACHABLE_CODE' => 'NO',
