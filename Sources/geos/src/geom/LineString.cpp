@@ -35,6 +35,7 @@
 #include <geos/geom/Point.h>
 #include <geos/geom/MultiPoint.h> // for getBoundary
 #include <geos/geom/Envelope.h>
+#include <geos/operation/BoundaryOp.h>
 
 #include <algorithm>
 #include <typeinfo>
@@ -106,6 +107,15 @@ LineString::LineString(CoordinateSequence::Ptr && newCoords,
     validateConstruction();
 }
 
+/*public*/
+LineString::LineString(std::vector<Coordinate> && newCoords,
+                       const GeometryFactory& factory)
+    :
+    Geometry(&factory),
+    points(new CoordinateArraySequence(std::move(newCoords)))
+{
+    validateConstruction();
+}
 
 std::unique_ptr<CoordinateSequence>
 LineString::getCoordinates() const
@@ -224,19 +234,8 @@ LineString::getGeometryType() const
 std::unique_ptr<Geometry>
 LineString::getBoundary() const
 {
-    if(isEmpty()) {
-        return std::unique_ptr<Geometry>(getFactory()->createMultiPoint());
-    }
-
-    // using the default OGC_SFS MOD2 rule, the boundary of a
-    // closed LineString is empty
-    if(isClosed()) {
-        return std::unique_ptr<Geometry>(getFactory()->createMultiPoint());
-    }
-    std::vector<std::unique_ptr<Point>> pts(2);
-    pts[0] = getStartPoint();
-    pts[1] = getEndPoint();
-    return getFactory()->createMultiPoint(std::move(pts));
+    operation::BoundaryOp bop(*this);
+    return bop.getBoundary();
 }
 
 bool

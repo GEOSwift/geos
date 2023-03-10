@@ -469,6 +469,42 @@ extern "C" {
     }
 
     Geometry*
+    GEOSConcaveHull(const Geometry* g,
+                    double ratio,
+                    unsigned int allowHoles)
+
+    {
+        return GEOSConcaveHull_r(handle, g, ratio, allowHoles);
+    }
+
+    Geometry*
+    GEOSPolygonHullSimplify(const Geometry* g,
+                            unsigned int isOuter,
+                            double vertexNumFraction)
+    {
+        return GEOSPolygonHullSimplify_r(handle, g, isOuter, vertexNumFraction);
+    }
+
+    Geometry*
+    GEOSPolygonHullSimplifyMode(const Geometry* g,
+                            unsigned int isOuter,
+                            unsigned int parameterMode,
+                            double parameter)
+    {
+        return GEOSPolygonHullSimplifyMode_r(handle, g, isOuter, parameterMode, parameter);
+    }
+
+    Geometry*
+    GEOSConcaveHullOfPolygons(const Geometry* g,
+        double lengthRatio,
+        unsigned int isTight,
+        unsigned int isHolesAllowed)
+    {
+        return GEOSConcaveHullOfPolygons_r(handle,
+            g, lengthRatio, isTight, isHolesAllowed);
+    }
+
+    Geometry*
     GEOSMinimumRotatedRectangle(const Geometry* g)
     {
         return GEOSMinimumRotatedRectangle_r(handle, g);
@@ -589,6 +625,11 @@ extern "C" {
         return GEOSClipByRect_r(handle, g, xmin, ymin, xmax, ymax);
     }
 
+
+    Geometry*
+    GEOSGeom_transformXY(const GEOSGeometry* g, GEOSTransformXYCallback callback, void* userdata) {
+        return GEOSGeom_transformXY_r(handle, g, callback, userdata);
+    }
 
 
 //-------------------------------------------------------------------
@@ -758,6 +799,13 @@ extern "C" {
         return GEOSGetCentroid_r(handle, g);
     }
 
+    int
+    GEOSHilbertCode(const GEOSGeometry *geom, const GEOSGeometry* extent,
+                unsigned int level, unsigned int *code)
+    {
+        return GEOSHilbertCode_r(handle, geom, extent, level, code);
+    }
+
     Geometry*
     GEOSMinimumBoundingCircle(const Geometry* g, double* radius, Geometry** center)
     {
@@ -844,9 +892,23 @@ extern "C" {
     }
 
     Geometry*
+    GEOSRemoveRepeatedPoints(
+        const Geometry* g,
+        double tolerance)
+    {
+        return GEOSRemoveRepeatedPoints_r(handle, g, tolerance);
+    }
+
+    Geometry*
     GEOSLineMerge(const Geometry* g)
     {
         return GEOSLineMerge_r(handle, g);
+    }
+
+    Geometry*
+    GEOSLineMergeDirected(const Geometry* g)
+    {
+        return GEOSLineMergeDirected_r(handle, g);
     }
 
     Geometry*
@@ -1127,6 +1189,11 @@ extern "C" {
         return GEOSGeom_getYMax_r(handle, g, value);
     }
 
+    int GEOS_DLL GEOSGeom_getExtent(const GEOSGeometry* g, double* xmin, double* ymin, double* xmax, double* ymax)
+    {
+        return GEOSGeom_getExtent_r(handle, g, xmin, ymin, xmax, ymax);
+    }
+
     Geometry*
     GEOSSimplify(const Geometry* g, double tolerance)
     {
@@ -1153,6 +1220,11 @@ extern "C" {
         GEOSWKTReader_destroy_r(handle, reader);
     }
 
+    void
+    GEOSWKTReader_setFixStructure(WKTReader* reader, char doFix)
+    {
+        GEOSWKTReader_setFixStructure_r(handle, reader, doFix);
+    }
 
     Geometry*
     GEOSWKTReader_read(WKTReader* reader, const char* wkt)
@@ -1222,6 +1294,11 @@ extern "C" {
         GEOSWKBReader_destroy_r(handle, reader);
     }
 
+    void
+    GEOSWKBReader_setFixStructure(WKBReader* reader, char doFix)
+    {
+        GEOSWKBReader_setFixStructure_r(handle, reader, doFix);
+    }
 
     Geometry*
     GEOSWKBReader_read(WKBReader* reader, const unsigned char* wkb, std::size_t size)
@@ -1561,6 +1638,13 @@ extern "C" {
     GEOSGeom_createEmptyPolygon()
     {
         return GEOSGeom_createEmptyPolygon_r(handle);
+    }
+
+    geos::geom::Geometry*
+    GEOSGeom_createRectangle(double xmin, double ymin, double xmax,
+                            double ymax)
+    {
+        return GEOSGeom_createRectangle_r(handle, xmin, ymin, xmax, ymax);
     }
 
     int

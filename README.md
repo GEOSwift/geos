@@ -21,7 +21,7 @@ at least controversial. Use of geos without dynamic linking is discouraged.
 
 ## Upstream Version
 
-GEOSwift/geos 7.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.10.1
+GEOSwift/geos 8.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.11.1
 
 ## Installing with CocoaPods
 

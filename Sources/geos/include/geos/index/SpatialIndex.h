@@ -12,8 +12,7 @@
  *
  **********************************************************************/
 
-#ifndef GEOS_INDEX_SPATIALINDEX_H
-#define GEOS_INDEX_SPATIALINDEX_H
+#pragma once
 
 #include <geos/export.h>
 
@@ -71,7 +70,6 @@ public:
      * intersect the query envelope.
      *
      * @param searchEnv the envelope to query for
-     * @return a list of the items found by the query in a newly allocated vector
      */
     //virtual std::vector<void*>* query(const geom::Envelope *searchEnv)=0;
     virtual void query(const geom::Envelope* searchEnv, std::vector<void*>&) = 0;
@@ -102,6 +100,4 @@ public:
 
 } // namespace geos.index
 } // namespace geos
-
-#endif // GEOS_INDEX_SPATIALINDEX_H
 

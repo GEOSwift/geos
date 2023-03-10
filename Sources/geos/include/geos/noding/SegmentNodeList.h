@@ -20,8 +20,6 @@
 
 #include <geos/export.h>
 
-#include <geos/inline.h>
-
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -156,9 +154,6 @@ public:
     /**
      * Adds an intersection into the list, if it isn't already there.
      * The input segmentIndex is expected to be normalized.
-     *
-     * @return the SegmentIntersection found or added. It will be
-     *	   destroyed at SegmentNodeList destruction time.
      *
      * @param intPt the intersection Coordinate, will be copied
      * @param segmentIndex
