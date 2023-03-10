@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'geos'
-  s.version = '7.0.0'
+  s.version = '8.0.0'
   s.summary = 'GEOS (Geometry Engine - Open Source) is a C++ port of the Java Topology Suite (JTS).'
   s.homepage = 'http://trac.osgeo.org/geos'
   s.license = {
@@ -27,8 +27,9 @@ Pod::Spec.new do |s|
   }
   s.pod_target_xcconfig = {
     'HEADER_SEARCH_PATHS' => '${PODS_TARGET_SRCROOT}/Sources/geos/include ${PODS_TARGET_SRCROOT}/Sources/geos/public ${PODS_TARGET_SRCROOT}/Sources/geos/src/deps',
-    'GCC_PREPROCESSOR_DEFINITIONS' => 'USE_UNSTABLE_GEOS_CPP_API GEOS_INLINE NDEBUG',
+    'GCC_PREPROCESSOR_DEFINITIONS' => 'USE_UNSTABLE_GEOS_CPP_API NDEBUG',
     'CLANG_WARN_DOCUMENTATION_COMMENTS' => 'NO',
     'CLANG_WARN_UNREACHABLE_CODE' => 'NO',
+    'GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS' => 'NO',
   }
 end

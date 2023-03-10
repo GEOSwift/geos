@@ -21,24 +21,17 @@
 #include <geos/constants.h>
 #include <geos/geom/LineSegment.h>
 #include <geos/geom/LineString.h> // for toGeometry
-#include <geos/geom/Coordinate.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/CoordinateSequenceFactory.h>
 #include <geos/geom/GeometryFactory.h>
-#include <geos/algorithm/Orientation.h>
 #include <geos/algorithm/LineIntersector.h>
 #include <geos/algorithm/Intersection.h>
 #include <geos/util/IllegalStateException.h>
 #include <geos/profiler.h>
-#include <geos/inline.h>
 
 #include <algorithm> // for max
 #include <sstream>
 #include <cmath>
-
-#ifndef GEOS_INLINE
-# include <geos/geom/LineSegment.inl>
-#endif
 
 
 namespace geos {
@@ -188,7 +181,7 @@ LineSegment::orientationIndex(const LineSegment& seg) const
     }
     // this handles the case where the points are R or collinear
     if(orient0 <= 0 && orient1 <= 0) {
-        return std::max(orient0, orient1);
+        return std::min(orient0, orient1);
     }
     // points lie on opposite sides ==> indeterminate orientation
     return 0;
@@ -303,6 +296,18 @@ LineSegment::pointAlongOffset(double segmentLengthFraction,
 }
 
 /* public */
+LineSegment
+LineSegment::offset(double offsetDistance)
+{
+    Coordinate offset0, offset1;
+    pointAlongOffset(0, offsetDistance, offset0);
+    pointAlongOffset(1, offsetDistance, offset1);
+    LineSegment ls(offset0, offset1);
+    return ls;
+}
+
+
+/* public */
 std::unique_ptr<LineString>
 LineSegment::toGeometry(const GeometryFactory& gf) const
 {
@@ -311,6 +316,12 @@ LineSegment::toGeometry(const GeometryFactory& gf) const
     cl->setAt(p0, 0);
     cl->setAt(p1, 1);
     return gf.createLineString(std::move(cl));
+}
+
+std::ostream&
+operator<< (std::ostream& o, const LineSegment& l)
+{
+    return o << "LINESEGMENT(" << l.p0.x << " " << l.p0.y << "," << l.p1.x << " " << l.p1.y << ")";
 }
 
 } // namespace geos::geom
