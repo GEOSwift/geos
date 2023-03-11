@@ -36,7 +36,7 @@ GEOSwift/geos 8.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.1
 
 1. Update the top-level dependencies in your `Package.swift` to include:
 
-        .package(url: "https://github.com/GEOSwift/geos.git", from: "7.0.0")
+        .package(url: "https://github.com/GEOSwift/geos.git", from: "8.0.0")
 
 2. Update the target dependencies in your `Package.swift` to include
 
