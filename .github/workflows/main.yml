@@ -43,7 +43,7 @@ jobs:
             os: macos-12
             xcode-version: "14.2"
             sdk: watchsimulator9.1
-            destination: "platform=watchOS Simulator,OS=9.1,name=Apple Watch Series 8 - 45mm"
+            destination: "platform=watchOS Simulator,OS=9.1,name=Apple Watch Series 8 (45mm)"
           - name: "xcodebuild (iOS 15.2, Xcode 13.2.1)"
             os: macos-11
             xcode-version: "13.2.1"
