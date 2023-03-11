@@ -92,7 +92,7 @@ jobs:
         run: gem install xcpretty
       - name: Build
         run: |
-          xcodebuild \
+          set -o pipefail && xcodebuild \
             -scheme geos \
             -sdk "${{ matrix.sdk }}" \
             -destination "${{ matrix.destination }}" \
