@@ -21,7 +21,7 @@ at least controversial. Use of geos without dynamic linking is discouraged.
 
 ## Upstream Version
 
-GEOSwift/geos 8.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.11.1
+GEOSwift/geos 8.1.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.11.2
 
 ## Installing with CocoaPods
 
@@ -36,7 +36,7 @@ GEOSwift/geos 8.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.1
 
 1. Update the top-level dependencies in your `Package.swift` to include:
 
-        .package(url: "https://github.com/GEOSwift/geos.git", from: "8.0.0")
+        .package(url: "https://github.com/GEOSwift/geos.git", from: "8.1.0")
 
 2. Update the target dependencies in your `Package.swift` to include
 
@@ -82,6 +82,7 @@ how to get from the GEOS source to the end result in this repo.
 5. Update `Package.swift` and `geos.podspec` to ensure
 continued support for Swift Package Manager and CocoaPods.
 6. Test all your changes on the full matrix of supported configs
-(Swift Package Manager, CocoaPods) x (iOS, macOS, tvOS) + Swift PackageManager x Linux.
+(Swift Package Manager, CocoaPods) x (iOS, macOS, tvOS, watchOS) + Swift
+Package Manager x Linux.
 7. Update the version numbers in `geos.podspec` and `README.md`
 8. Update this README with any relevant information.
