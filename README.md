@@ -13,7 +13,7 @@ it in your Swift or Objective-C project. It is commonly used via
 
 ## Requirements
 
-* iOS 9.0+, macOS 10.9+, tvOS 9.0+, watchOS 2.0+ (Swift Package Manager, CocoaPods)
+* iOS 12.0+, macOS 10.13+, tvOS 12.0+, watchOS 4.0+ (Swift Package Manager, CocoaPods)
 * Linux (Swift Package Manager)
 
 > GEOS is licensed under LGPL 2.1 and its compatibility with static linking is

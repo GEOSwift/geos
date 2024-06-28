@@ -13,10 +13,10 @@ Pod::Spec.new do |s|
     tag: s.version,
   }
   s.platforms = {
-    ios: '9.0',
-    osx: '10.9',
-    tvos: '9.0',
-    watchos: '2.0',
+    ios: '12.0',
+    osx: '10.13',
+    tvos: '12.0',
+    watchos: '4.0',
   }
   s.preserve_paths = 'Sources/geos/**/*'
   s.source_files = 'Sources/geos/{src,capi,public}/**/*'
