@@ -25,6 +25,7 @@
 #include <geos/geom/CoordinateSequence.h> // for proper use of unique_ptr<>
 #include <geos/geom/Envelope.h> // for proper use of unique_ptr<>
 #include <geos/geom/Dimension.h> // for Dimension::DimensionType
+#include <geos/geom/SimpleCurve.h>
 
 #include <string>
 #include <vector>
@@ -39,7 +40,6 @@
 namespace geos {
 namespace geom {
 class Coordinate;
-class CoordinateArraySequence;
 class CoordinateSequenceFilter;
 }
 }
@@ -63,7 +63,7 @@ namespace geom { // geos::geom
  *  If these conditions are not met, the constructors throw
  *  an {@link util::IllegalArgumentException}.
  */
-class GEOS_DLL LineString: public Geometry {
+class GEOS_DLL LineString: public SimpleCurve {
 
 public:
 
@@ -86,104 +86,15 @@ public:
         return std::unique_ptr<LineString>(cloneImpl());
     }
 
-    std::unique_ptr<CoordinateSequence> getCoordinates() const override;
-
-    /// Returns a read-only pointer to internal CoordinateSequence
-    const CoordinateSequence* getCoordinatesRO() const;
-
-    virtual const Coordinate& getCoordinateN(std::size_t n) const;
-
-    /**
-     * \brief
-     * Take ownership of the CoordinateSequence managed by this geometry.
-     * After releasing the coordinates, the geometry should be considered
-     * in a moved-from state and should not be accessed.
-     * @return this Geometry's CoordinateSequence.
-     */
-    std::unique_ptr<CoordinateSequence> releaseCoordinates();
-
-    /// Returns line dimension (1)
-    Dimension::DimensionType getDimension() const override;
-
-    /**
-     * \brief
-     * Returns Dimension::False for a closed LineString,
-     * 0 otherwise (LineString boundary is a MultiPoint)
-     */
-    int getBoundaryDimension() const override;
-
-    /// Returns coordinate dimension.
-    uint8_t getCoordinateDimension() const override;
-
-    /**
-     * \brief
-     * Returns a MultiPoint.
-     * Empty for closed LineString, a Point for each vertex otherwise.
-     */
-    std::unique_ptr<Geometry> getBoundary() const override;
-
-    bool isEmpty() const override;
-
-    std::size_t getNumPoints() const override;
-
-    virtual std::unique_ptr<Point> getPointN(std::size_t n) const;
-
-    /// \brief
-    /// Return the start point of the LineString
-    /// or NULL if this is an EMPTY LineString.
-    ///
-    virtual std::unique_ptr<Point> getStartPoint() const;
-
-    /// \brief
-    /// Return the end point of the LineString
-    /// or NULL if this is an EMPTY LineString.
-    ///
-    virtual std::unique_ptr<Point> getEndPoint() const;
-
-    virtual bool isClosed() const;
-
-    virtual bool isRing() const;
-
     std::string getGeometryType() const override;
 
     GeometryTypeId getGeometryTypeId() const override;
 
-    virtual bool isCoordinate(Coordinate& pt) const;
-
-    bool equalsExact(const Geometry* other, double tolerance = 0)
-    const override;
-
-    void apply_rw(const CoordinateFilter* filter) override;
-
-    void apply_ro(CoordinateFilter* filter) const override;
-
-    void apply_rw(GeometryFilter* filter) override;
-
-    void apply_ro(GeometryFilter* filter) const override;
-
-    void apply_rw(GeometryComponentFilter* filter) override;
-
-    void apply_ro(GeometryComponentFilter* filter) const override;
-
-    void apply_rw(CoordinateSequenceFilter& filter) override;
-
-    void apply_ro(CoordinateSequenceFilter& filter) const override;
-
-    /** \brief
-     * Normalizes a LineString.
-     *
-     * A normalized linestring
-     * has the first point which is not equal to its reflected point
-     * less than the reflected point.
-     */
-    void normalize() override;
-
-    //was protected
-    int compareToSameClass(const Geometry* ls) const override;
-
-    const Coordinate* getCoordinate() const override;
-
     double getLength() const override;
+
+    bool isCurved() const override {
+        return false;
+    }
 
     /**
      * Creates a LineString whose coordinates are in the reverse
@@ -200,22 +111,12 @@ protected:
     /// \brief
     /// Constructs a LineString taking ownership the
     /// given CoordinateSequence.
-    LineString(CoordinateSequence* pts, const GeometryFactory* newFactory);
-
-    /// Hopefully cleaner version of the above
     LineString(CoordinateSequence::Ptr && pts,
-               const GeometryFactory& newFactory);
-
-    LineString(std::vector<Coordinate> && pts,
                const GeometryFactory& newFactory);
 
     LineString* cloneImpl() const override { return new LineString(*this); }
 
     LineString* reverseImpl() const override;
-
-    Envelope::Ptr computeEnvelopeInternal() const override;
-
-    CoordinateSequence::Ptr points;
 
     int
     getSortIndex() const override
@@ -223,12 +124,14 @@ protected:
         return SORTINDEX_LINESTRING;
     };
 
+    void geometryChangedAction() override
+    {
+        envelope = computeEnvelopeInternal(true);
+    }
+
 private:
 
     void validateConstruction();
-    void normalizeClosed();
-
-
 };
 
 struct GEOS_DLL  LineStringLT {

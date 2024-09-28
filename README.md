@@ -13,7 +13,7 @@ it in your Swift or Objective-C project. It is commonly used via
 
 ## Requirements
 
-* iOS 9.0+, macOS 10.9+, tvOS 9.0+, watchOS 2.0+ (Swift Package Manager, CocoaPods)
+* iOS 12.0+, macOS 10.13+, tvOS 12.0+, watchOS 4.0+ (Swift Package Manager, CocoaPods)
 * Linux (Swift Package Manager)
 
 > GEOS is licensed under LGPL 2.1 and its compatibility with static linking is
@@ -21,7 +21,7 @@ at least controversial. Use of geos without dynamic linking is discouraged.
 
 ## Upstream Version
 
-GEOSwift/geos 8.1.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.11.2
+GEOSwift/geos 9.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.13.0
 
 ## Installing with CocoaPods
 
@@ -36,7 +36,7 @@ GEOSwift/geos 8.1.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.1
 
 1. Update the top-level dependencies in your `Package.swift` to include:
 
-        .package(url: "https://github.com/GEOSwift/geos.git", from: "8.1.0")
+        .package(url: "https://github.com/GEOSwift/geos.git", from: "9.0.0")
 
 2. Update the target dependencies in your `Package.swift` to include
 

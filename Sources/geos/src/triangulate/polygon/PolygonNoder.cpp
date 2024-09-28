@@ -14,8 +14,6 @@
 
 #include <geos/algorithm/LineIntersector.h>
 #include <geos/geom/Coordinate.h>
-#include <geos/geom/CoordinateSequence.h>
-#include <geos/geom/CoordinateArraySequence.h>
 #include <geos/noding/MCIndexNoder.h>
 #include <geos/noding/NodedSegmentString.h>
 #include <geos/noding/SegmentIntersector.h>
@@ -26,8 +24,6 @@
 
 using geos::algorithm::LineIntersector;
 using geos::geom::Coordinate;
-using geos::geom::CoordinateSequence;
-using geos::geom::CoordinateArraySequence;
 using geos::noding::SegmentString;
 using geos::noding::NodedSegmentString;
 using geos::noding::SegmentIntersector;
@@ -154,16 +150,14 @@ PolygonNoder::isHoleNoded(std::size_t i)
 std::unique_ptr<CoordinateSequence>
 PolygonNoder::getNodedShell()
 {
-    std::vector<Coordinate> nodedCoords = nodedRings[0]->getNodedCoordinates();
-    return detail::make_unique<CoordinateArraySequence>(std::move(nodedCoords));
+    return nodedRings[0]->getNodedCoordinates();
 }
 
 /* public */
 std::unique_ptr<CoordinateSequence>
 PolygonNoder::getNodedHole(std::size_t i)
 {
-    std::vector<Coordinate> nodedCoords = nodedRings[i+1]->getNodedCoordinates();
-    return detail::make_unique<CoordinateArraySequence>(std::move(nodedCoords));\
+    return nodedRings[i+1]->getNodedCoordinates();
 }
 
 /* public */
@@ -194,7 +188,7 @@ PolygonNoder::createNodedSegString(std::unique_ptr<CoordinateSequence>& ringPts,
     // note: in PolygonHoleJoiner::nodeRings we will replace the contents
     // of the shellRing and holeRings with the results of the calculation
     // here, so it's OK to take ownership of the points from them here
-    NodedSegmentString* nss = new NodedSegmentString(ringPts.release(), nullptr);
+    NodedSegmentString* nss = new NodedSegmentString(ringPts.release(), false, false, nullptr);
     nss->setData(nss);
     // need to map the identity of this nss to the index number of the
     // ring it represents. use an external map to avoid abusing the void*

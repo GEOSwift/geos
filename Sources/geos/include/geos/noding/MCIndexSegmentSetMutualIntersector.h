@@ -10,11 +10,6 @@
  * by the Free Software Foundation.
  * See the COPYING file for more information.
  *
- *
- **********************************************************************
- *
- * Last port: noding/MCIndexSegmentSetMutualIntersector.java r388 (JTS-1.12)
- *
  **********************************************************************/
 
 #pragma once
@@ -25,18 +20,15 @@
 #include <geos/index/strtree/TemplateSTRtree.h> // inherited
 
 namespace geos {
+namespace geom {
+    class Envelope;
+}
 namespace index {
-class SpatialIndex;
-
-namespace chain {
-}
-namespace strtree {
-//class STRtree;
-}
+    class SpatialIndex;
 }
 namespace noding {
-class SegmentString;
-class SegmentIntersector;
+    class SegmentString;
+    class SegmentIntersector;
 }
 }
 
@@ -52,15 +44,31 @@ namespace noding { // geos::noding
  *
  * @version 1.7
  */
-class MCIndexSegmentSetMutualIntersector : public SegmentSetMutualIntersector {
+class GEOS_DLL MCIndexSegmentSetMutualIntersector : public SegmentSetMutualIntersector {
 public:
 
-    MCIndexSegmentSetMutualIntersector()
+    MCIndexSegmentSetMutualIntersector(double p_tolerance)
         : monoChains()
         , indexCounter(0)
         , processCounter(0)
         , nOverlaps(0)
+        , overlapTolerance(p_tolerance)
         , indexBuilt(false)
+        , envelope(nullptr)
+    {}
+
+    MCIndexSegmentSetMutualIntersector(const geom::Envelope* p_envelope)
+        : monoChains()
+        , indexCounter(0)
+        , processCounter(0)
+        , nOverlaps(0)
+        , overlapTolerance(0.0)
+        , indexBuilt(false)
+        , envelope(p_envelope)
+    {}
+
+    MCIndexSegmentSetMutualIntersector()
+        : MCIndexSegmentSetMutualIntersector(0.0)
     {}
 
     ~MCIndexSegmentSetMutualIntersector() override
@@ -116,12 +124,14 @@ private:
     int processCounter;
     // statistics
     int nOverlaps;
+    double overlapTolerance;
 
     /* memory management helper, holds MonotoneChain objects used
      * in the SpatialIndex. It's cleared when the SpatialIndex is
      */
     bool indexBuilt;
     MonoChains indexChains;
+    const geom::Envelope* envelope;
 
     void addToIndex(SegmentString* segStr);
 

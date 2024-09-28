@@ -53,7 +53,7 @@ PointGeometryUnion::Union() const
             continue;
         }
 
-        const Coordinate* coord = point->getCoordinate();
+        const Coordinate* coord = static_cast<const Coordinate*>(point->getCoordinate());
         Location loc = locater.locate(*coord, &otherGeom);
         if(loc == Location::EXTERIOR) {
             exteriorCoords.insert(*coord);
@@ -69,18 +69,14 @@ PointGeometryUnion::Union() const
     std::unique_ptr<Geometry> ptComp;
 
     if(exteriorCoords.size() == 1) {
-        ptComp.reset(geomFact->createPoint(*(exteriorCoords.begin())));
+        ptComp = geomFact->createPoint(*(exteriorCoords.begin()));
     }
     else {
-        std::vector<Coordinate> coords(exteriorCoords.size());
-        std::copy(exteriorCoords.begin(), exteriorCoords.end(), coords.begin());
-        ptComp.reset(geomFact->createMultiPoint(coords));
+        ptComp = geomFact->createMultiPoint(exteriorCoords);
     }
 
     // add point component to the other geometry
-    return std::unique_ptr<Geometry> (
-               GeometryCombiner::combine(ptComp.get(), &otherGeom)
-           );
+    return GeometryCombiner::combine(ptComp.get(), &otherGeom);
 }
 
 /* public  static */

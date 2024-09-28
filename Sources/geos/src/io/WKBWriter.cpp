@@ -19,8 +19,11 @@
 #include <geos/io/WKBWriter.h>
 #include <geos/io/WKBReader.h>
 #include <geos/io/ByteOrderValues.h>
+#include <geos/io/CheckOrdinatesFilter.h>
 #include <geos/util/IllegalArgumentException.h>
 #include <geos/geom/Coordinate.h>
+#include <geos/geom/CompoundCurve.h>
+#include <geos/geom/CurvePolygon.h>
 #include <geos/geom/Point.h>
 #include <geos/geom/LinearRing.h>
 #include <geos/geom/LineString.h>
@@ -29,12 +32,13 @@
 #include <geos/geom/MultiLineString.h>
 #include <geos/geom/MultiPolygon.h>
 #include <geos/geom/CoordinateSequence.h>
-#include <geos/geom/CoordinateArraySequence.h>
 #include <geos/geom/PrecisionModel.h>
 
 #include <ostream>
 #include <sstream>
 #include <cassert>
+
+#include "geos/util.h"
 
 #undef DEBUG_WKB_WRITER
 
@@ -46,15 +50,15 @@ namespace io { // geos.io
 
 WKBWriter::WKBWriter(uint8_t dims, int bo, bool srid, int flv)
     : defaultOutputDimension(dims)
+    , outputOrdinates(getOutputOrdinates(OrdinateSet::createXYZM()))
     , byteOrder(bo)
     , flavor(flv)
     , includeSRID(srid)
     , outStream(nullptr)
 {
-    if(dims < 2 || dims > 3) {
-        throw util::IllegalArgumentException("WKB output dimension must be 2 or 3");
+    if(dims < 2 || dims > 4) {
+        throw util::IllegalArgumentException("WKB output dimension must be 2, 3, or 4");
     }
-    outputDimension = defaultOutputDimension;
 }
 
 
@@ -62,8 +66,8 @@ WKBWriter::WKBWriter(uint8_t dims, int bo, bool srid, int flv)
 void
 WKBWriter::setOutputDimension(uint8_t dims)
 {
-    if(dims < 2 || dims > 3) {
-        throw util::IllegalArgumentException("WKB output dimension must be 2 or 3");
+    if(dims < 2 || dims > 4) {
+        throw util::IllegalArgumentException("WKB output dimension must be 2, 3, or 4");
     }
     defaultOutputDimension = dims;
 }
@@ -97,43 +101,28 @@ WKBWriter::writeHEX(const Geometry& g, std::ostream& os)
 void
 WKBWriter::write(const Geometry& g, std::ostream& os)
 {
-    outputDimension = defaultOutputDimension;
-    if (outputDimension > g.getCoordinateDimension()) {
-        outputDimension = g.getCoordinateDimension();
-    }
+    OrdinateSet inputOrdinates = OrdinateSet::createXY();
+    inputOrdinates.setM(g.hasM());
+    inputOrdinates.setZ(g.hasZ());
+    outputOrdinates = getOutputOrdinates(inputOrdinates);
 
     outStream = &os;
 
-    if (const Point* x = dynamic_cast<const Point*>(&g)) {
-        return writePoint(*x);
+    switch(g.getGeometryTypeId()) {
+        case GEOS_POINT: writePoint(static_cast<const Point&>(g)); break;
+        case GEOS_LINESTRING:
+        case GEOS_LINEARRING:
+        case GEOS_CIRCULARSTRING: writeSimpleCurve(static_cast<const SimpleCurve&>(g)); break;
+        case GEOS_COMPOUNDCURVE: writeCompoundCurve(static_cast<const CompoundCurve&>(g)); break;
+        case GEOS_POLYGON: writePolygon(static_cast<const Polygon&>(g)); break;
+        case GEOS_CURVEPOLYGON: writeCurvePolygon(static_cast<const CurvePolygon&>(g)); break;
+        case GEOS_MULTIPOINT:
+        case GEOS_MULTILINESTRING:
+        case GEOS_MULTIPOLYGON:
+        case GEOS_MULTICURVE:
+        case GEOS_MULTISURFACE:
+        case GEOS_GEOMETRYCOLLECTION: writeGeometryCollection(static_cast<const GeometryCollection&>(g)); break;
     }
-
-    if (const LineString* x = dynamic_cast<const LineString*>(&g)) {
-        return writeLineString(*x);
-    }
-
-    if (const Polygon* x = dynamic_cast<const Polygon*>(&g)) {
-        return writePolygon(*x);
-    }
-
-    if (const MultiPoint* x = dynamic_cast<const MultiPoint*>(&g)) {
-        return writeGeometryCollection(*x, WKBConstants::wkbMultiPoint);
-    }
-
-    if (const MultiLineString* x = dynamic_cast<const MultiLineString*>(&g)) {
-        return writeGeometryCollection(*x, WKBConstants::wkbMultiLineString);
-    }
-
-    if (const MultiPolygon* x = dynamic_cast<const MultiPolygon*>(&g)) {
-        return writeGeometryCollection(*x, WKBConstants::wkbMultiPolygon);
-    }
-
-    if (const GeometryCollection* x =
-                dynamic_cast<const GeometryCollection*>(&g)) {
-        return writeGeometryCollection(*x, WKBConstants::wkbGeometryCollection);
-    }
-
-    assert(0); // Unknown Geometry type
 }
 
 void
@@ -144,7 +133,7 @@ WKBWriter::writePointEmpty(const Point& g)
     writeSRID(g.getSRID());
 
     Coordinate c(DoubleNotANumber, DoubleNotANumber, DoubleNotANumber);
-    CoordinateArraySequence cas(std::size_t(1), std::size_t(g.getCoordinateDimension()));
+    CoordinateSequence cas(std::size_t(1), std::size_t(g.getCoordinateDimension()));
     cas.setAt(c, 0);
 
     writeCoordinateSequence(cas, false);
@@ -168,11 +157,11 @@ WKBWriter::writePoint(const Point& g)
 }
 
 void
-WKBWriter::writeLineString(const LineString& g)
+WKBWriter::writeSimpleCurve(const SimpleCurve& g)
 {
     writeByteOrder();
 
-    writeGeometryType(WKBConstants::wkbLineString, g.getSRID());
+    writeGeometryType(getWkbType(g), g.getSRID());
     writeSRID(g.getSRID());
 
     const CoordinateSequence* cs = g.getCoordinatesRO();
@@ -181,11 +170,32 @@ WKBWriter::writeLineString(const LineString& g)
 }
 
 void
+WKBWriter::writeCompoundCurve(const CompoundCurve& g)
+{
+    writeByteOrder();
+
+    writeGeometryType(getWkbType(g), g.getSRID());
+    writeSRID(g.getSRID());
+
+    writeInt(static_cast<int>(g.getNumCurves()));
+
+    auto orig_includeSRID = includeSRID;
+    includeSRID = false;
+
+    for (std::size_t i = 0; i < g.getNumCurves(); i++) {
+        const SimpleCurve& section = *g.getCurveN(i);
+        writeSimpleCurve(section);
+    }
+
+    includeSRID = orig_includeSRID;
+}
+
+void
 WKBWriter::writePolygon(const Polygon& g)
 {
     writeByteOrder();
 
-    writeGeometryType(WKBConstants::wkbPolygon, g.getSRID());
+    writeGeometryType(getWkbType(g), g.getSRID());
     writeSRID(g.getSRID());
 
     if (g.isEmpty()) {
@@ -215,12 +225,42 @@ WKBWriter::writePolygon(const Polygon& g)
 }
 
 void
-WKBWriter::writeGeometryCollection(const GeometryCollection& g,
-                                   int wkbtype)
+WKBWriter::writeCurvePolygon(const CurvePolygon& g)
+{
+    // Why not combine this with writePolygon?
+    // A CurvePolygon differs from a Polygon in that its rings
+    // can one of three different types. Therefore, the type
+    // information is written for each ring, unlike a Polygon.
+
+    writeByteOrder();
+
+    writeGeometryType(getWkbType(g), g.getSRID());
+
+    writeSRID(g.getSRID());
+
+    if (g.isEmpty()) {
+        writeInt(0);
+        return;
+    }
+
+    std::size_t nholes = g.getNumInteriorRing();
+    writeInt(static_cast<int>(nholes + 1));
+
+    const Curve* ring = g.getExteriorRing();
+    write(*ring, *outStream);
+
+    for(std::size_t i = 0; i < nholes; i++) {
+        ring = g.getInteriorRingN(i);
+        write(*ring, *outStream);
+    }
+}
+
+void
+WKBWriter::writeGeometryCollection(const GeometryCollection& g)
 {
     writeByteOrder();
 
-    writeGeometryType(wkbtype, g.getSRID());
+    writeGeometryType(getWkbType(g), g.getSRID());
     writeSRID(g.getSRID());
 
     auto ngeoms = g.getNumGeometries();
@@ -272,15 +312,25 @@ void
 WKBWriter::writeGeometryType(int typeId, int SRID)
 {
     if (flavor == WKBConstants::wkbExtended) {
-        int flag3D = (outputDimension == 3) ? int(0x80000000) : 0;
-        typeId |= flag3D;
+        int dimFlag = 0;
+        if (outputOrdinates.hasZ()) {
+            dimFlag |= static_cast<int>(0x80000000);
+        }
+        if (outputOrdinates.hasM()) {
+            dimFlag |= static_cast<int>(0x40000000);
+        }
+
+        typeId |= dimFlag;
         if(includeSRID && SRID != 0) {
             typeId |= 0x20000000;
         }
     }
     else if (flavor == WKBConstants::wkbIso) {
-        if (outputDimension == 3) {
+        if (outputOrdinates.hasZ()) {
             typeId += 1000;
+        }
+        if (outputOrdinates.hasM()) {
+            typeId += 2000;
         }
     }
     else {
@@ -317,38 +367,76 @@ WKBWriter::writeCoordinateSequence(const CoordinateSequence& cs,
                                    bool sized)
 {
     std::size_t size = cs.getSize();
-    bool is3d = false;
-    if(outputDimension > 2) {
-        is3d = true;
-    }
 
     if(sized) {
         writeInt(static_cast<int>(size));
     }
     for(std::size_t i = 0; i < size; i++) {
-        writeCoordinate(cs, i, is3d);
+        writeCoordinate(cs, i);
     }
 }
 
 void
-WKBWriter::writeCoordinate(const CoordinateSequence& cs, std::size_t idx,
-                           bool is3d)
+WKBWriter::writeCoordinate(const CoordinateSequence& cs, std::size_t idx)
 {
 #if DEBUG_WKB_WRITER
     std::size_t << "writeCoordinate: X:" << cs.getX(idx) << " Y:" << cs.getY(idx) << std::endl;
 #endif
     assert(outStream);
 
-    ByteOrderValues::putDouble(cs.getX(idx), buf, byteOrder);
+    CoordinateXYZM coord(DoubleNotANumber, DoubleNotANumber, DoubleNotANumber, DoubleNotANumber);
+    cs.getAt(idx, coord);
+
+    ByteOrderValues::putDouble(coord.x, buf, byteOrder);
     outStream->write(reinterpret_cast<char*>(buf), 8);
-    ByteOrderValues::putDouble(cs.getY(idx), buf, byteOrder);
+    ByteOrderValues::putDouble(coord.y, buf, byteOrder);
     outStream->write(reinterpret_cast<char*>(buf), 8);
-    if(is3d) {
-        ByteOrderValues::putDouble(
-            cs.getOrdinate(idx, CoordinateSequence::Z),
-            buf, byteOrder);
+    if(outputOrdinates.hasZ()) {
+        ByteOrderValues::putDouble(coord.z, buf, byteOrder);
         outStream->write(reinterpret_cast<char*>(buf), 8);
     }
+    if(outputOrdinates.hasM()) {
+        ByteOrderValues::putDouble(coord.m, buf, byteOrder);
+        outStream->write(reinterpret_cast<char*>(buf), 8);
+    }
+}
+
+OrdinateSet
+WKBWriter::getOutputOrdinates(OrdinateSet ordinates)
+{
+    // drop specified ordinates to meet defaultOutputDimension
+    OrdinateSet newOrdinates = ordinates;
+    while (newOrdinates.size() > defaultOutputDimension) {
+        if (newOrdinates.hasM()) {
+            newOrdinates.setM(false);
+        } else if (newOrdinates.hasZ()) {
+            newOrdinates.setZ(false);
+        }
+    }
+
+    return newOrdinates;
+}
+
+int
+WKBWriter::getWkbType(const Geometry& g) {
+    switch(g.getGeometryTypeId()) {
+        case GEOS_POINT: return WKBConstants::wkbPoint;
+        case GEOS_LINESTRING:
+        case GEOS_LINEARRING: return WKBConstants::wkbLineString;
+        case GEOS_CIRCULARSTRING: return WKBConstants::wkbCircularString;
+        case GEOS_COMPOUNDCURVE: return WKBConstants::wkbCompoundCurve;
+        case GEOS_POLYGON: return WKBConstants::wkbPolygon;
+        case GEOS_CURVEPOLYGON: return WKBConstants::wkbCurvePolygon;
+        case GEOS_MULTIPOINT: return WKBConstants::wkbMultiPoint;
+        case GEOS_MULTILINESTRING: return WKBConstants::wkbMultiLineString;
+        case GEOS_MULTICURVE: return WKBConstants::wkbMultiCurve;
+        case GEOS_MULTIPOLYGON: return WKBConstants::wkbMultiPolygon;
+        case GEOS_MULTISURFACE: return WKBConstants::wkbMultiSurface;
+        case GEOS_GEOMETRYCOLLECTION: return WKBConstants::wkbGeometryCollection;
+    }
+
+    // Avoid -Wreturn-type warning
+    throw util::IllegalArgumentException("Invalid geometry type.");
 }
 
 

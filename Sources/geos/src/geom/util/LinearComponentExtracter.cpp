@@ -18,6 +18,7 @@
 
 #include <geos/geom/GeometryComponentFilter.h>
 #include <geos/geom/util/LinearComponentExtracter.h>
+#include <geos/util.h>
 
 namespace geos {
 namespace geom { // geos.geom
@@ -31,25 +32,21 @@ LinearComponentExtracter::LinearComponentExtracter(std::vector<const LineString*
 void
 LinearComponentExtracter::getLines(const Geometry& geom, std::vector<const LineString*>& ret)
 {
+    if (geom.getDimension() == Dimension::P) {
+        return;
+    }
+
     LinearComponentExtracter lce(ret);
     geom.apply_ro(&lce);
-}
-
-void
-LinearComponentExtracter::filter_rw(Geometry* geom)
-{
-    if (geom->isEmpty()) return;
-    if(const LineString* ls = dynamic_cast<const LineString*>(geom)) {
-        comps.push_back(ls);
-    }
 }
 
 void
 LinearComponentExtracter::filter_ro(const Geometry* geom)
 {
     if (geom->isEmpty()) return;
-    if(const LineString* ls = dynamic_cast<const LineString*>(geom)) {
-        comps.push_back(ls);
+    auto typ = geom->getGeometryTypeId();
+    if (typ == GEOS_LINEARRING || typ == GEOS_LINESTRING) {
+        comps.push_back(detail::down_cast<const LineString*>(geom));
     }
 }
 

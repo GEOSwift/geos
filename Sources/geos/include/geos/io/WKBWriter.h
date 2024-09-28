@@ -22,6 +22,7 @@
 #include <geos/export.h>
 
 #include <geos/util/Machine.h> // for getMachineByteOrder
+#include <geos/io/OrdinateSet.h>
 #include <geos/io/WKBConstants.h>
 #include <iosfwd>
 #include <cstdint>
@@ -32,6 +33,8 @@ namespace geos {
 namespace geom {
 
 class CoordinateSequence;
+class CompoundCurve;
+class CurvePolygon;
 class Geometry;
 class GeometryCollection;
 class Point;
@@ -42,6 +45,7 @@ class MultiPoint;
 class MultiLineString;
 class MultiPolygon;
 class PrecisionModel;
+class SimpleCurve;
 
 } // namespace geom
 } // namespace geos
@@ -57,7 +61,7 @@ namespace io {
  *
  * The WKB format is specified in the OGC Simple Features for SQL specification.
  * This implementation supports the extended WKB standard for representing
- * 3-dimensional coordinates.  The presence of 3D coordinates is signified
+ * Z and M coordinates.  The presence of Z and/or M coordinates is signified
  * by setting the high bit of the wkbType word.
  *
  * Empty Points cannot be represented in WKB; an
@@ -79,15 +83,16 @@ public:
      * Initializes writer with target coordinate dimension, endianness
      * flag and SRID value.
      *
-     * @param dims Supported values are 2 or 3.  Note that 3 indicates
-     * up to 3 dimensions will be written but 2D WKB is still produced for 2D geometries.
+     * @param dims Supported values are 2, 3 or 4.  Note that 4 indicates
+     * up to 4 dimensions will be written but (e.g.) 2D WKB is still produced
+     * for 2D geometries. Default since GEOS 3.12 is 4.
      * @param bo output byte order - default to native machine byte order.
      * Legal values include 0 (big endian/xdr) and 1 (little endian/ndr).
      * @param incudeSRID true if SRID should be included in WKB (an
      * extension).
      */
     WKBWriter(
-        uint8_t dims = 2,
+        uint8_t dims = 4,
         int bo = getMachineByteOrder(),
         bool includeSRID = false,
         int flv = WKBConstants::wkbExtended);
@@ -112,9 +117,9 @@ public:
     /*
      * Sets the output dimension used by the <code>WKBWriter</code>.
      *
-     * @param newOutputDimension Supported values are 2 or 3.
-     * Note that 3 indicates up to 3 dimensions will be written but
-     * 2D WKB is still produced for 2D geometries.
+     * @param newOutputDimension Supported values are 2, 3 or 4.
+     * Note that 4 indicates up to 4 dimensions will be written but
+     * (e.g.) 2D WKB is still produced for 2D geometries.
      */
     void setOutputDimension(uint8_t newOutputDimension);
 
@@ -192,11 +197,13 @@ public:
     void writeHEX(const geom::Geometry& g, std::ostream& os);
     // throws IOException, ParseException
 
+    static int getWkbType(const geom::Geometry&);
+
 private:
 
-    // 2 or 3
+    // 2, 3, or 4
     uint8_t defaultOutputDimension;
-    uint8_t outputDimension;
+    OrdinateSet outputOrdinates;
 
     // WKBConstants::wkbwkbXDR | WKBConstants::wkbNDR
     int byteOrder;
@@ -213,19 +220,23 @@ private:
     void writePointEmpty(const geom::Point& p);
     // throws IOException
 
-    void writeLineString(const geom::LineString& ls);
+    void writeSimpleCurve(const geom::SimpleCurve& ls);
     // throws IOException
+
+    void writeCompoundCurve(const geom::CompoundCurve& curve);
 
     void writePolygon(const geom::Polygon& p);
     // throws IOException
 
-    void writeGeometryCollection(const geom::GeometryCollection& c, int wkbtype);
+    void writeCurvePolygon(const geom::CurvePolygon& p);
+
+    void writeGeometryCollection(const geom::GeometryCollection& gc);
     // throws IOException, ParseException
 
     void writeCoordinateSequence(const geom::CoordinateSequence& cs, bool sized);
     // throws IOException
 
-    void writeCoordinate(const geom::CoordinateSequence& cs, std::size_t idx, bool is3d);
+    void writeCoordinate(const geom::CoordinateSequence& cs, std::size_t idx);
     // throws IOException
 
     void writeGeometryType(int geometryType, int SRID);
@@ -239,6 +250,8 @@ private:
 
     void writeInt(int intValue);
     // throws IOException
+
+    OrdinateSet getOutputOrdinates(OrdinateSet ordinates);
 
 };
 

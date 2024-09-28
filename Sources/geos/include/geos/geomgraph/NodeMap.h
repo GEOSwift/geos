@@ -22,10 +22,11 @@
 
 #include <geos/export.h>
 #include <map>
+#include <memory>
 #include <vector>
 #include <string>
 
-#include <geos/geom/Coordinate.h> // for CoordinateLessThen
+#include <geos/geom/Coordinate.h> // for CoordinateLessThan
 #include <geos/geomgraph/Node.h> // for testInvariant
 
 
@@ -46,16 +47,14 @@ class NodeFactory;
 namespace geos {
 namespace geomgraph { // geos.geomgraph
 
-class GEOS_DLL NodeMap {
+class GEOS_DLL NodeMap final {
 public:
 
-    typedef std::map<geom::Coordinate*, Node*, geom::CoordinateLessThen> container;
+    typedef std::map<geom::Coordinate*, std::unique_ptr<Node>, geom::CoordinateLessThan> container;
 
     typedef container::iterator iterator;
 
     typedef container::const_iterator const_iterator;
-
-    typedef std::pair<geom::Coordinate*, Node*> pair;
 
     container nodeMap;
 
@@ -66,13 +65,20 @@ public:
     /// keep it alive for the whole NodeMap lifetime
     NodeMap(const NodeFactory& newNodeFact);
 
-    virtual ~NodeMap();
-
     Node* addNode(const geom::Coordinate& coord);
 
     Node* addNode(Node* n);
 
+    /// \brief
+    /// Adds a node for the start point of this EdgeEnd
+    /// (if one does not already exist in this map).
+    /// Adds the EdgeEnd to the (possibly new) node.
+    ///
+    /// If ownership of the EdgeEnd should be transferred
+    /// to the Node, use the unique_ptr overload instead.
     void add(EdgeEnd* e);
+
+    void add(std::unique_ptr<EdgeEnd>&& e);
 
     Node* find(const geom::Coordinate& coord) const;
 
@@ -110,13 +116,13 @@ public:
     {
 #ifndef NDEBUG
         // Each Coordinate key is a pointer inside the Node value
-        for(iterator it = begin(), itEnd = end(); it != itEnd; ++it) {
-            pair p = *it;
-            geomgraph::Node* n = p.second;
+        for(const auto& nodeIt: nodeMap) {
+            const auto* n = nodeIt.second.get();
             geom::Coordinate* c = const_cast<geom::Coordinate*>(
                                       &(n->getCoordinate())
                                   );
-            assert(p.first == c);
+            assert(nodeIt.first == c);
+            (void)c;
         }
 #endif
     }

@@ -24,6 +24,7 @@
 #include <geos/geom/GeometryFactory.h>
 #include <geos/geom/Geometry.h>
 #include <geos/io/ParseException.h>
+#include <geos/io/OrdinateSet.h>
 
 #include <string>
 
@@ -39,10 +40,15 @@ class GeometryCollection;
 class Point;
 class LineString;
 class LinearRing;
+class CircularString;
+class CompoundCurve;
 class Polygon;
+class CurvePolygon;
 class MultiPoint;
 class MultiLineString;
+class MultiCurve;
 class MultiPolygon;
+class MultiSurface;
 class PrecisionModel;
 }
 }
@@ -111,29 +117,45 @@ public:
     std::unique_ptr<geom::Geometry> read(const std::string& wellKnownText) const;
 
 protected:
-    std::unique_ptr<geom::CoordinateSequence> getCoordinates(io::StringTokenizer* tokenizer) const;
+    std::unique_ptr<geom::CoordinateSequence> getCoordinates(io::StringTokenizer* tokenizer, OrdinateSet& ordinates) const;
     static double getNextNumber(io::StringTokenizer* tokenizer);
-    static std::string getNextEmptyOrOpener(io::StringTokenizer* tokenizer, std::size_t& dim);
+    static std::string getNextEmptyOrOpener(io::StringTokenizer* tokenizer, OrdinateSet& dim);
     static std::string getNextCloserOrComma(io::StringTokenizer* tokenizer);
     static std::string getNextCloser(io::StringTokenizer* tokenizer);
     static std::string getNextWord(io::StringTokenizer* tokenizer);
-    std::unique_ptr<geom::Geometry> readGeometryTaggedText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::Point> readPointText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::LineString> readLineStringText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::LinearRing> readLinearRingText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::MultiPoint> readMultiPointText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::Polygon> readPolygonText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::MultiLineString> readMultiLineStringText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::MultiPolygon> readMultiPolygonText(io::StringTokenizer* tokenizer) const;
-    std::unique_ptr<geom::GeometryCollection> readGeometryCollectionText(io::StringTokenizer* tokenizer) const;
+    std::unique_ptr<geom::Geometry> readGeometryTaggedText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags, const geom::GeometryTypeId* emptyType = nullptr) const;
+
+    std::unique_ptr<geom::Point> readPointText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::LineString> readLineStringText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::LinearRing> readLinearRingText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::MultiPoint> readMultiPointText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::Polygon> readPolygonText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::MultiLineString> readMultiLineStringText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::MultiPolygon> readMultiPolygonText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::GeometryCollection> readGeometryCollectionText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::CircularString> readCircularStringText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::CompoundCurve> readCompoundCurveText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::CurvePolygon> readCurvePolygonText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::MultiCurve> readMultiCurveText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+    std::unique_ptr<geom::MultiSurface> readMultiSurfaceText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+
+    /// Read the contents of a LINEARRING, LINESTRING, CIRCULARSTRING, or COMPOUNDCURVE
+    std::unique_ptr<geom::Curve> readCurveText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
+
+    /// Read the contents of a POLYGON or a CURVEPOLYGON
+    std::unique_ptr<geom::Geometry> readSurfaceText(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags) const;
 private:
     const geom::GeometryFactory* geometryFactory;
     const geom::PrecisionModel* precisionModel;
     bool fixStructure;
 
-    void getPreciseCoordinate(io::StringTokenizer* tokenizer, geom::Coordinate&, std::size_t& dim) const;
+    void getPreciseCoordinate(io::StringTokenizer* tokenizer, OrdinateSet& ordinateFlags, geom::CoordinateXYZM&) const;
 
     static bool isNumberNext(io::StringTokenizer* tokenizer);
+    static bool isOpenerNext(io::StringTokenizer* tokenizer);
+
+    static void readOrdinateFlags(const std::string & s, OrdinateSet& ordinateFlags);
+    static bool isTypeName(const std::string & type, const std::string & typeName);
 };
 
 } // namespace io

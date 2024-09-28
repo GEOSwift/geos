@@ -197,7 +197,7 @@ LineSequencer::computeSequence()
 Geometry*
 LineSequencer::buildSequencedGeometry(const Sequences& sequences)
 {
-    std::unique_ptr<Geometry::NonConstVect> lines(new Geometry::NonConstVect);
+    std::vector<std::unique_ptr<Geometry>> lines;
 
     for(Sequences::const_iterator
             i1 = sequences.begin(), i1End = sequences.end();
@@ -211,24 +211,24 @@ LineSequencer::buildSequencedGeometry(const Sequences& sequences)
             const LineString* line = e->getLine();
 
             // lineToAdd will be a *copy* of input things
-            LineString* lineToAdd;
+            std::unique_ptr<LineString> lineToAdd;
 
             if(! de->getEdgeDirection() && ! line->isClosed()) {
-                lineToAdd = line->reverse().release();
+                lineToAdd = line->reverse();
             }
             else {
-                lineToAdd = line->clone().release();
+                lineToAdd = line->clone();
             }
 
-            lines->push_back(lineToAdd);
+            lines.push_back(std::move(lineToAdd));
         }
     }
 
-    if(lines->empty()) {
+    if(lines.empty()) {
         return nullptr;
     }
     else {
-        return factory->buildGeometry(lines.release());
+        return factory->buildGeometry(std::move(lines)).release();
     }
 }
 
@@ -309,7 +309,7 @@ LineSequencer::addReverseSubpath(const planargraph::DirectedEdge* de,
     if(expectedClosed) {
         // the path should end at the toNode of this de,
         // otherwise we have an error
-        util::Assert::isTrue(fromNode == endNode, "path not contiguos");
+        util::Assert::isTrue(fromNode == endNode, "path not contiguous");
         //assert(fromNode == endNode);
     }
 

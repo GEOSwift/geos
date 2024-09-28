@@ -36,18 +36,10 @@
 #endif
 
 namespace geos {
-namespace algorithm {
-//class RayCrossingCounter;
-}
 namespace geom {
 class Geometry;
 class Coordinate;
 //class CoordinateSequence;
-}
-namespace index {
-namespace intervalrtree {
-//class SortedPackedIntervalRTree;
-}
 }
 }
 
@@ -138,7 +130,7 @@ public:
         return ptDist.getDistance();
     }
 
-    const std::array<geom::Coordinate, 2>
+    const std::array<geom::CoordinateXY, 2>
     getCoordinates() const
     {
         return ptDist.getCoordinates();
@@ -152,7 +144,7 @@ public:
         {}
 
         void
-        filter_ro(const geom::Coordinate* pt) override
+        filter_ro(const geom::CoordinateXY* pt) override
         {
             minPtDist.initialize();
             DistanceToPoint::computeDistance(geom, *pt,

@@ -22,8 +22,6 @@
 #include <geos/algorithm/Length.h>
 #include <geos/algorithm/Orientation.h>
 #include <geos/geom/Coordinate.h>
-#include <geos/geom/CoordinateSequenceFactory.h>
-#include <geos/geom/CoordinateArraySequence.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/CoordinateSequenceFilter.h>
 #include <geos/geom/CoordinateFilter.h>
@@ -36,6 +34,7 @@
 #include <geos/geom/MultiPoint.h> // for getBoundary
 #include <geos/geom/Envelope.h>
 #include <geos/operation/BoundaryOp.h>
+#include <geos/util.h>
 
 #include <algorithm>
 #include <typeinfo>
@@ -51,11 +50,17 @@ LineString::~LineString(){}
 
 /*protected*/
 LineString::LineString(const LineString& ls)
-    :
-    Geometry(ls),
-    points(ls.points->clone())
+    : SimpleCurve(ls)
 {
-    //points=ls.points->clone();
+}
+
+/*public*/
+LineString::LineString(CoordinateSequence::Ptr && newCoords,
+                       const GeometryFactory& factory)
+    :
+    SimpleCurve(std::move(newCoords), true, factory)
+{
+    validateConstruction();
 }
 
 LineString*
@@ -67,9 +72,9 @@ LineString::reverseImpl() const
 
     assert(points.get());
     auto seq = points->clone();
-    CoordinateSequence::reverse(seq.get());
+    seq->reverse();
     assert(getFactory());
-    return getFactory()->createLineString(seq.release());
+    return getFactory()->createLineString(std::move(seq)).release();
 }
 
 
@@ -78,7 +83,7 @@ void
 LineString::validateConstruction()
 {
     if(points.get() == nullptr) {
-        points = getFactory()->getCoordinateSequenceFactory()->create();
+        points = std::make_unique<CoordinateSequence>();
         return;
     }
 
@@ -87,143 +92,6 @@ LineString::validateConstruction()
     }
 }
 
-/*protected*/
-LineString::LineString(CoordinateSequence* newCoords,
-                       const GeometryFactory* factory)
-    :
-    Geometry(factory),
-    points(newCoords)
-{
-    validateConstruction();
-}
-
-/*public*/
-LineString::LineString(CoordinateSequence::Ptr && newCoords,
-                       const GeometryFactory& factory)
-    :
-    Geometry(&factory),
-    points(std::move(newCoords))
-{
-    validateConstruction();
-}
-
-/*public*/
-LineString::LineString(std::vector<Coordinate> && newCoords,
-                       const GeometryFactory& factory)
-    :
-    Geometry(&factory),
-    points(new CoordinateArraySequence(std::move(newCoords)))
-{
-    validateConstruction();
-}
-
-std::unique_ptr<CoordinateSequence>
-LineString::getCoordinates() const
-{
-    assert(points.get());
-    return points->clone();
-    //return points;
-}
-
-const CoordinateSequence*
-LineString::getCoordinatesRO() const
-{
-    assert(nullptr != points.get());
-    return points.get();
-}
-
-std::unique_ptr<CoordinateSequence>
-LineString::releaseCoordinates()
-{
-    auto ret = std::move(points);
-    geometryChanged();
-    return ret;
-}
-
-const Coordinate&
-LineString::getCoordinateN(std::size_t n) const
-{
-    assert(points.get());
-    return points->getAt(n);
-}
-
-Dimension::DimensionType
-LineString::getDimension() const
-{
-    return Dimension::L; // line
-}
-
-uint8_t
-LineString::getCoordinateDimension() const
-{
-    return (uint8_t) points->getDimension();
-}
-
-int
-LineString::getBoundaryDimension() const
-{
-    if(isClosed()) {
-        return Dimension::False;
-    }
-    return 0;
-}
-
-bool
-LineString::isEmpty() const
-{
-    assert(points.get());
-    return points->isEmpty();
-}
-
-std::size_t
-LineString::getNumPoints() const
-{
-    assert(points.get());
-    return points->getSize();
-}
-
-std::unique_ptr<Point>
-LineString::getPointN(std::size_t n) const
-{
-    assert(getFactory());
-    assert(points.get());
-    return std::unique_ptr<Point>(getFactory()->createPoint(points->getAt(n)));
-}
-
-std::unique_ptr<Point>
-LineString::getStartPoint() const
-{
-    if(isEmpty()) {
-        return nullptr;
-        //return new Point(NULL,NULL);
-    }
-    return getPointN(0);
-}
-
-std::unique_ptr<Point>
-LineString::getEndPoint() const
-{
-    if(isEmpty()) {
-        return nullptr;
-        //return new Point(NULL,NULL);
-    }
-    return getPointN(getNumPoints() - 1);
-}
-
-bool
-LineString::isClosed() const
-{
-    if(isEmpty()) {
-        return false;
-    }
-    return getCoordinateN(0).equals2D(getCoordinateN(getNumPoints() - 1));
-}
-
-bool
-LineString::isRing() const
-{
-    return isClosed() && isSimple();
-}
 
 std::string
 LineString::getGeometryType() const
@@ -231,165 +99,6 @@ LineString::getGeometryType() const
     return "LineString";
 }
 
-std::unique_ptr<Geometry>
-LineString::getBoundary() const
-{
-    operation::BoundaryOp bop(*this);
-    return bop.getBoundary();
-}
-
-bool
-LineString::isCoordinate(Coordinate& pt) const
-{
-    assert(points.get());
-    std::size_t npts = points->getSize();
-    for(std::size_t i = 0; i < npts; i++) {
-        if(points->getAt(i) == pt) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/*protected*/
-Envelope::Ptr
-LineString::computeEnvelopeInternal() const
-{
-    if(isEmpty()) {
-        // We don't return NULL here
-        // as it would indicate "unknown"
-        // envelope. In this case we
-        // *know* the envelope is EMPTY.
-        return Envelope::Ptr(new Envelope());
-    }
-
-    return detail::make_unique<Envelope>(points->getEnvelope());
-}
-
-bool
-LineString::equalsExact(const Geometry* other, double tolerance) const
-{
-    if(!isEquivalentClass(other)) {
-        return false;
-    }
-
-    const LineString* otherLineString = detail::down_cast<const LineString*>(other);
-    std::size_t npts = points->getSize();
-    if(npts != otherLineString->points->getSize()) {
-        return false;
-    }
-    for(std::size_t i = 0; i < npts; ++i) {
-        if(!equal(points->getAt(i), otherLineString->points->getAt(i), tolerance)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void
-LineString::apply_rw(const CoordinateFilter* filter)
-{
-    assert(points.get());
-    points->apply_rw(filter);
-}
-
-void
-LineString::apply_ro(CoordinateFilter* filter) const
-{
-    assert(points.get());
-    points->apply_ro(filter);
-}
-
-void
-LineString::apply_rw(GeometryFilter* filter)
-{
-    assert(filter);
-    filter->filter_rw(this);
-}
-
-void
-LineString::apply_ro(GeometryFilter* filter) const
-{
-    assert(filter);
-    filter->filter_ro(this);
-}
-
-/*private*/
-void
-LineString::normalizeClosed()
-{
-    auto coords = detail::make_unique<std::vector<Coordinate>>();
-    getCoordinatesRO()->toVector(*coords);
-
-    coords->erase(coords->end() - 1); // remove last point (repeated)
-
-    auto uniqueCoordinates = detail::make_unique<CoordinateArraySequence>(coords.release());
-
-    const Coordinate* minCoordinate = uniqueCoordinates->minCoordinate();
-
-    CoordinateSequence::scroll(uniqueCoordinates.get(), minCoordinate);
-    uniqueCoordinates->add(uniqueCoordinates->getAt(0));
-
-    if(uniqueCoordinates->size() >= 4 && algorithm::Orientation::isCCW(uniqueCoordinates.get())) {
-        CoordinateSequence::reverse(uniqueCoordinates.get());
-    }
-    points = uniqueCoordinates.get()->clone();
-}
-
-/*public*/
-void
-LineString::normalize()
-{
-    if (isEmpty()) return;
-    assert(points.get());
-    if (isClosed()) {
-        normalizeClosed();
-        return;
-    }
-    std::size_t npts = points->getSize();
-    std::size_t n = npts / 2;
-    for(std::size_t i = 0; i < n; i++) {
-        std::size_t j = npts - 1 - i;
-        if(!(points->getAt(i) == points->getAt(j))) {
-            if(points->getAt(i).compareTo(points->getAt(j)) > 0) {
-                CoordinateSequence::reverse(points.get());
-            }
-            return;
-        }
-    }
-}
-
-int
-LineString::compareToSameClass(const Geometry* ls) const
-{
-    const LineString* line = detail::down_cast<const LineString*>(ls);
-
-    // MD - optimized implementation
-    std::size_t mynpts = points->getSize();
-    std::size_t othnpts = line->points->getSize();
-    if(mynpts > othnpts) {
-        return 1;
-    }
-    if(mynpts < othnpts) {
-        return -1;
-    }
-    for(std::size_t i = 0; i < mynpts; i++) {
-        int cmp = points->getAt(i).compareTo(line->points->getAt(i));
-        if(cmp) {
-            return cmp;
-        }
-    }
-    return 0;
-}
-
-const Coordinate*
-LineString::getCoordinate() const
-{
-    if(isEmpty()) {
-        return nullptr;
-    }
-    return &(points->getAt(0));
-}
 
 double
 LineString::getLength() const
@@ -397,53 +106,6 @@ LineString::getLength() const
     return Length::ofLine(points.get());
 }
 
-void
-LineString::apply_rw(GeometryComponentFilter* filter)
-{
-    assert(filter);
-    filter->filter_rw(this);
-}
-
-void
-LineString::apply_ro(GeometryComponentFilter* filter) const
-{
-    assert(filter);
-    filter->filter_ro(this);
-}
-
-void
-LineString::apply_rw(CoordinateSequenceFilter& filter)
-{
-    std::size_t npts = points->size();
-    if(!npts) {
-        return;
-    }
-    for(std::size_t i = 0; i < npts; ++i) {
-        filter.filter_rw(*points, i);
-        if(filter.isDone()) {
-            break;
-        }
-    }
-    if(filter.isGeometryChanged()) {
-        geometryChanged();
-    }
-}
-
-void
-LineString::apply_ro(CoordinateSequenceFilter& filter) const
-{
-    std::size_t npts = points->size();
-    if(!npts) {
-        return;
-    }
-    for(std::size_t i = 0; i < npts; ++i) {
-        filter.filter_ro(*points, i);
-        if(filter.isDone()) {
-            break;
-        }
-    }
-    //if (filter.isGeometryChanged()) geometryChanged();
-}
 
 GeometryTypeId
 LineString::getGeometryTypeId() const

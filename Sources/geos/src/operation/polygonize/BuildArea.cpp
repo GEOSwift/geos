@@ -94,11 +94,11 @@ static bool ringsEqualAnyDirection(const LinearRing* r1, const LinearRing* r2)
 
     const Coordinate& firstPoint = cs1->getAt(0);
     size_t offset = CoordinateSequence::indexOf(&firstPoint, cs2);
-    if ( offset == std::numeric_limits<std::size_t>::max() ) return false;
+    if ( offset == NO_COORD_INDEX ) return false;
 
     bool equal = true;
 
-    /* Check equals forward (skip first point, we checked it alread) */
+    /* Check equals forward (skip first point, we checked it already) */
     for (size_t i=1; i<npoints; ++i)
     {
         size_t j = ( i + offset ) % npoints;
@@ -181,7 +181,7 @@ static void findFaceHoles(std::vector<std::unique_ptr<Face>>& faces) {
 static std::unique_ptr<geom::MultiPolygon> collectFacesWithEvenAncestors(
     const std::vector<std::unique_ptr<Face>>& faces) {
     std::vector<std::unique_ptr<geom::Geometry>> geoms;
-    for( auto& face: faces ) {
+    for( const auto& face: faces ) {
         if( face->countParents() % 2 ) {
             continue; /* we skip odd parents geoms */
         }

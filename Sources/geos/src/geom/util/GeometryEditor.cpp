@@ -74,6 +74,8 @@ GeometryEditor::GeometryEditor(const GeometryFactory* newFactory)
 std::unique_ptr<Geometry>
 GeometryEditor::edit(const Geometry* geometry, GeometryEditorOperation* operation)
 {
+    geos::util::ensureNoCurvedComponents(geometry);
+
     // if client did not supply a GeometryFactory, use the one from the input Geometry
     if(factory == nullptr) {
         factory = geometry->getFactory();
@@ -126,7 +128,7 @@ GeometryEditor::editPolygon(const Polygon* polygon, GeometryEditorOperation* ope
         return std::unique_ptr<Polygon>(factory->createPolygon(polygon->getCoordinateDimension()));
     }
 
-    auto holes = detail::make_unique<std::vector<LinearRing*>>();
+    std::vector<std::unique_ptr<LinearRing>> holes;
     for(std::size_t i = 0, n = newPolygon->getNumInteriorRing(); i < n; ++i) {
 
         std::unique_ptr<LinearRing> hole(detail::down_cast<LinearRing*>(
@@ -135,10 +137,10 @@ GeometryEditor::editPolygon(const Polygon* polygon, GeometryEditorOperation* ope
         if(hole->isEmpty()) {
             continue;
         }
-        holes->push_back(hole.release());
+        holes.push_back(std::move(hole));
     }
 
-    return std::unique_ptr<Polygon>(factory->createPolygon(shell.release(), holes.release()));
+    return factory->createPolygon(std::move(shell), std::move(holes));
 }
 
 std::unique_ptr<GeometryCollection>

@@ -26,6 +26,7 @@
 #include <geos/geom/MultiLineString.h>
 #include <geos/geom/MultiPolygon.h>
 #include <geos/geom/PrecisionModel.h>
+#include <geos/geom/Polygon.h>
 #include <geos/util/IllegalArgumentException.h>
 #include <geos/export.h>
 
@@ -35,8 +36,9 @@
 
 namespace geos {
 namespace geom {
-class CoordinateSequenceFactory;
 class Coordinate;
+class CircularString;
+class CompoundCurve;
 class CoordinateSequence;
 class Envelope;
 class Geometry;
@@ -44,9 +46,11 @@ class GeometryCollection;
 class LineString;
 class LinearRing;
 class MultiLineString;
+class MultiCurve;
 class MultiPoint;
 class MultiPolygon;
-class Polygon;
+class MultiSurface;
+class CurvePolygon;
 }
 }
 
@@ -88,29 +92,6 @@ public:
     /**
      * \brief
      * Constructs a GeometryFactory that generates Geometries having
-     * the given PrecisionModel, spatial-reference ID, and
-     * CoordinateSequence implementation.
-     *
-     * NOTES:
-     * (1) the given PrecisionModel is COPIED
-     * (2) the CoordinateSequenceFactory is NOT COPIED
-     *     and must be available for the whole lifetime
-     *     of the GeometryFactory
-     */
-    static GeometryFactory::Ptr create(const PrecisionModel* pm, int newSRID,
-                                       CoordinateSequenceFactory* nCoordinateSequenceFactory);
-
-    /**
-     * \brief
-     * Constructs a GeometryFactory that generates Geometries having the
-     * given CoordinateSequence implementation, a double-precision floating
-     * PrecisionModel and a spatial-reference ID of 0.
-     */
-    static GeometryFactory::Ptr create(CoordinateSequenceFactory* nCoordinateSequenceFactory);
-
-    /**
-     * \brief
-     * Constructs a GeometryFactory that generates Geometries having
      * the given PrecisionModel and the default CoordinateSequence
      * implementation.
      *
@@ -145,10 +126,10 @@ public:
     static const GeometryFactory*
     getDefaultInstance();
 
-//Skipped a lot of list to array convertors
+//Skipped a lot of list to array converters
 
-    Point* createPointFromInternalCoord(const Coordinate* coord,
-                                        const Geometry* exemplar) const;
+    static std::unique_ptr<Point> createPointFromInternalCoord(const Coordinate* coord,
+                                        const Geometry* exemplar);
 
     /// Converts an Envelope to a Geometry.
     ///
@@ -166,26 +147,27 @@ public:
 
     /// Creates an EMPTY Point
     std::unique_ptr<Point> createPoint(std::size_t coordinateDimension = 2) const;
+    std::unique_ptr<Point> createPoint(bool hasZ, bool hasM) const;
 
     /// Creates a Point using the given Coordinate
-    Point* createPoint(const Coordinate& coordinate) const;
+    std::unique_ptr<Point> createPoint(const Coordinate& coordinate) const;
+    std::unique_ptr<Point> createPoint(const CoordinateXY& coordinate) const;
+    std::unique_ptr<Point> createPoint(const CoordinateXYM& coordinate) const;
+    std::unique_ptr<Point> createPoint(const CoordinateXYZM& coordinate) const;
 
     /// Creates a Point taking ownership of the given CoordinateSequence
-    Point* createPoint(CoordinateSequence* coordinates) const;
+    std::unique_ptr<Point> createPoint(std::unique_ptr<CoordinateSequence>&& coordinates) const;
 
     /// Creates a Point with a deep-copy of the given CoordinateSequence.
-    Point* createPoint(const CoordinateSequence& coordinates) const;
+    std::unique_ptr<Point> createPoint(const CoordinateSequence& coordinates) const;
 
     /// Construct an EMPTY GeometryCollection
     std::unique_ptr<GeometryCollection> createGeometryCollection() const;
 
     /// Construct the EMPTY Geometry
-    std::unique_ptr<Geometry> createEmptyGeometry() const;
+    std::unique_ptr<Geometry> createEmptyGeometry(GeometryTypeId type = GEOS_GEOMETRYCOLLECTION, bool hasZ=false, bool hasM=false) const;
 
     /// Construct a GeometryCollection taking ownership of given arguments
-    GeometryCollection* createGeometryCollection(
-        std::vector<Geometry*>* newGeoms) const;
-
     template<typename T>
     std::unique_ptr<GeometryCollection> createGeometryCollection(
             std::vector<std::unique_ptr<T>> && newGeoms) const {
@@ -194,123 +176,160 @@ public:
     }
 
     /// Constructs a GeometryCollection with a deep-copy of args
-    GeometryCollection* createGeometryCollection(
+    std::unique_ptr<GeometryCollection> createGeometryCollection(
         const std::vector<const Geometry*>& newGeoms) const;
 
     /// Construct an EMPTY MultiLineString
     std::unique_ptr<MultiLineString> createMultiLineString() const;
 
-    /// Construct a MultiLineString taking ownership of given arguments
-    MultiLineString* createMultiLineString(
-        std::vector<Geometry*>* newLines) const;
-
     /// Construct a MultiLineString with a deep-copy of given arguments
-    MultiLineString* createMultiLineString(
+    std::unique_ptr<MultiLineString> createMultiLineString(
         const std::vector<const Geometry*>& fromLines) const;
 
+    /// Construct a MultiLineString taking ownership of given arguments
     std::unique_ptr<MultiLineString> createMultiLineString(
             std::vector<std::unique_ptr<LineString>> && fromLines) const;
 
     std::unique_ptr<MultiLineString> createMultiLineString(
             std::vector<std::unique_ptr<Geometry>> && fromLines) const;
 
+    /// Construct an EMPTY MultiCurve
+    std::unique_ptr<MultiCurve> createMultiCurve() const;
+
+    /// Construct a MultiCurve taking ownership of given arguments
+    std::unique_ptr<MultiCurve> createMultiCurve(
+            std::vector<std::unique_ptr<Geometry>> && fromCurves) const;
+
+    std::unique_ptr<MultiCurve> createMultiCurve(
+            std::vector<std::unique_ptr<Curve>> && fromCurves) const;
+
     /// Construct an EMPTY MultiPolygon
     std::unique_ptr<MultiPolygon> createMultiPolygon() const;
 
-    /// Construct a MultiPolygon taking ownership of given arguments
-    MultiPolygon* createMultiPolygon(std::vector<Geometry*>* newPolys) const;
-
     /// Construct a MultiPolygon with a deep-copy of given arguments
-    MultiPolygon* createMultiPolygon(
+    std::unique_ptr<MultiPolygon> createMultiPolygon(
         const std::vector<const Geometry*>& fromPolys) const;
 
+    /// Construct a MultiPolygon taking ownership of given arguments
     std::unique_ptr<MultiPolygon> createMultiPolygon(
         std::vector<std::unique_ptr<Polygon>> && fromPolys) const;
 
     std::unique_ptr<MultiPolygon> createMultiPolygon(
             std::vector<std::unique_ptr<Geometry>> && fromPolys) const;
 
+    /// Construct an EMPTY MultiSurface
+    std::unique_ptr<MultiSurface> createMultiSurface() const;
+
+    /// Construct a MultiSurface taking ownership of given arguments
+    std::unique_ptr<MultiSurface> createMultiSurface(
+            std::vector<std::unique_ptr<Geometry>> && from) const;
+
+    std::unique_ptr<MultiSurface> createMultiSurface(
+            std::vector<std::unique_ptr<Surface>> && from) const;
+
     /// Construct an EMPTY LinearRing
-    std::unique_ptr<LinearRing> createLinearRing() const;
+    std::unique_ptr<LinearRing> createLinearRing(std::size_t coordinateDimension = 2) const;
+    std::unique_ptr<LinearRing> createLinearRing(bool hasZ, bool hasM) const;
 
     /// Construct a LinearRing taking ownership of given arguments
-    LinearRing* createLinearRing(CoordinateSequence* newCoords) const;
-
     std::unique_ptr<LinearRing> createLinearRing(
         std::unique_ptr<CoordinateSequence> && newCoords) const;
 
-    std::unique_ptr<LinearRing> createLinearRing(
-        std::vector<Coordinate> && coordinates) const;
-
     /// Construct a LinearRing with a deep-copy of given arguments
-    LinearRing* createLinearRing(
+    std::unique_ptr<LinearRing> createLinearRing(
         const CoordinateSequence& coordinates) const;
 
     /// Constructs an EMPTY <code>MultiPoint</code>.
     std::unique_ptr<MultiPoint> createMultiPoint() const;
 
+    template<typename T>
+    std::unique_ptr<MultiPoint> createMultiPoint(const T& fromCoords) const
+    {
+        std::vector<std::unique_ptr<Geometry>> pts;
+        pts.reserve(fromCoords.size());
+        for (const auto& c : fromCoords) {
+            pts.emplace_back(createPoint(c));
+        }
+
+        return createMultiPoint(std::move(pts));
+    }
+
     /// Construct a MultiPoint taking ownership of given arguments
-    MultiPoint* createMultiPoint(std::vector<Geometry*>* newPoints) const;
-
-    std::unique_ptr<MultiPoint> createMultiPoint(std::vector<Coordinate> && newPoints) const;
-
     std::unique_ptr<MultiPoint> createMultiPoint(std::vector<std::unique_ptr<Point>> && newPoints) const;
 
     std::unique_ptr<MultiPoint> createMultiPoint(std::vector<std::unique_ptr<Geometry>> && newPoints) const;
 
     /// Construct a MultiPoint with a deep-copy of given arguments
-    MultiPoint* createMultiPoint(
+    std::unique_ptr<MultiPoint> createMultiPoint(
         const std::vector<const Geometry*>& fromPoints) const;
 
     /// \brief
     /// Construct a MultiPoint containing a Point geometry
     /// for each Coordinate in the given list.
-    MultiPoint* createMultiPoint(
+    std::unique_ptr<MultiPoint> createMultiPoint(
         const CoordinateSequence& fromCoords) const;
-
-    /// \brief
-    /// Construct a MultiPoint containing a Point geometry
-    /// for each Coordinate in the given vector.
-    MultiPoint* createMultiPoint(
-        const std::vector<Coordinate>& fromCoords) const;
 
     /// Construct an EMPTY Polygon
     std::unique_ptr<Polygon> createPolygon(std::size_t coordinateDimension = 2) const;
+    std::unique_ptr<Polygon> createPolygon(bool hasZ, bool hasM) const;
 
     /// Construct a Polygon taking ownership of given arguments
-    Polygon* createPolygon(LinearRing* shell,
-                           std::vector<LinearRing*>* holes) const;
-
     std::unique_ptr<Polygon> createPolygon(std::unique_ptr<LinearRing> && shell) const;
 
     std::unique_ptr<Polygon> createPolygon(std::unique_ptr<LinearRing> && shell,
                                            std::vector<std::unique_ptr<LinearRing>> && holes) const;
 
     /// Construct a Polygon from a Coordinate vector, taking ownership of the vector
-    std::unique_ptr<Polygon> createPolygon(std::vector<Coordinate> && coords) const;
+    std::unique_ptr<Polygon> createPolygon(CoordinateSequence && coords) const;
 
     /// Construct a Polygon with a deep-copy of given arguments
     Polygon* createPolygon(const LinearRing& shell,
                            const std::vector<LinearRing*>& holes) const;
 
+
+    /// Construct an EMPTY CurvePolygon
+    std::unique_ptr<CurvePolygon> createCurvePolygon(bool hasZ, bool hasM) const;
+
+    /// Construct a CurvePolygon taking ownership of given arguments
+    std::unique_ptr<CurvePolygon> createCurvePolygon(std::unique_ptr<Curve>&& shell) const;
+
+    std::unique_ptr<CurvePolygon> createCurvePolygon(std::unique_ptr<Curve>&& shell,
+                                                     std::vector<std::unique_ptr<Curve>> && holes) const;
+
     /// Construct an EMPTY LineString
     std::unique_ptr<LineString> createLineString(std::size_t coordinateDimension = 2) const;
+    std::unique_ptr<LineString> createLineString(bool hasZ, bool hasM) const;
 
     /// Copy a LineString
     std::unique_ptr<LineString> createLineString(const LineString& ls) const;
 
     /// Construct a LineString taking ownership of given argument
-    LineString* createLineString(CoordinateSequence* coordinates) const;
-
     std::unique_ptr<LineString> createLineString(
         std::unique_ptr<CoordinateSequence> && coordinates) const;
 
-    std::unique_ptr<LineString> createLineString(
-        std::vector<Coordinate> && coordinates) const;
-
     /// Construct a LineString with a deep-copy of given argument
-    LineString* createLineString(
+    std::unique_ptr<LineString> createLineString(
         const CoordinateSequence& coordinates) const;
+
+    /// Construct an EMPTY CircularString
+    std::unique_ptr<CircularString> createCircularString(bool hasZ, bool hasM) const;
+
+    /// Copy a CircularString
+    std::unique_ptr<CircularString> createCircularString(const CircularString& ls) const;
+
+    /// Construct a CircularString taking ownership of given argument
+    std::unique_ptr<CircularString> createCircularString(
+        std::unique_ptr<CoordinateSequence> && coordinates) const;
+
+    /// Construct a CircularString with a deep-copy of given argument
+    std::unique_ptr<CircularString> createCircularString(
+        const CoordinateSequence& coordinates) const;
+
+    /// Construct an EMPTY CompoundCurve
+    std::unique_ptr<CompoundCurve> createCompoundCurve() const;
+
+    /// Construct a CompoundCurve taking ownership of given argument
+    std::unique_ptr<CompoundCurve> createCompoundCurve(std::vector<std::unique_ptr<SimpleCurve>>&&) const;
 
     /**
     * Creates an empty atomic geometry of the given dimension.
@@ -320,6 +339,15 @@ public:
     * @return an empty atomic geometry of given dimension
     */
     std::unique_ptr<Geometry> createEmpty(int dimension) const;
+
+    /**
+    * Creates an empty atomic geometry of the given type.
+    * @param typeId the desired GeometryTypeId
+    * @return an empty atomic geometry of given dimension
+    */
+    std::unique_ptr<Geometry> createEmpty(GeometryTypeId typeId) const;
+
+    std::unique_ptr<Geometry> createMulti(std::unique_ptr<Geometry> && geom) const;
 
     /**
      *  Build an appropriate <code>Geometry</code>, <code>MultiGeometry</code>, or
@@ -351,8 +379,6 @@ public:
      * NOTE: the returned Geometry will take ownership of the
      *       given vector AND its elements
      */
-    Geometry* buildGeometry(std::vector<Geometry*>* geoms) const;
-
     std::unique_ptr<Geometry> buildGeometry(std::vector<std::unique_ptr<Geometry>> && geoms) const;
 
     std::unique_ptr<Geometry> buildGeometry(std::vector<std::unique_ptr<Point>> && geoms) const;
@@ -363,7 +389,7 @@ public:
 
     /// See buildGeometry(std::vector<Geometry *>&) for semantics
     //
-    /// Will clone the geometries accessible trough the iterator.
+    /// Will clone the geometries accessible through the iterator.
     ///
     /// @tparam T an iterator yielding something which casts to const Geometry*
     /// @param from start iterator
@@ -430,23 +456,15 @@ public:
      * The difference is that this version will copy needed data
      * leaving ownership to the caller.
      */
-    Geometry* buildGeometry(const std::vector<const Geometry*>& geoms) const;
+    std::unique_ptr<Geometry> buildGeometry(const std::vector<const Geometry*>& geoms) const;
 
     int getSRID() const
     {
         return SRID;
     };
 
-    /// \brief
-    /// Returns the CoordinateSequenceFactory associated
-    /// with this GeometryFactory
-    const CoordinateSequenceFactory* getCoordinateSequenceFactory() const
-    {
-        return coordinateListFactory;
-    };
-
     /// Returns a clone of given Geometry.
-    Geometry* createGeometry(const Geometry* g) const;
+    std::unique_ptr<Geometry> createGeometry(const Geometry* g) const;
 
     /// Destroy a Geometry, or release it
     void destroyGeometry(Geometry* g) const;
@@ -467,29 +485,6 @@ protected:
      * floating PrecisionModel and a spatial-reference ID of 0.
      */
     GeometryFactory();
-
-    /**
-     * \brief
-     * Constructs a GeometryFactory that generates Geometries having
-     * the given PrecisionModel, spatial-reference ID, and
-     * CoordinateSequence implementation.
-     *
-     * NOTES:
-     * (1) the given PrecisionModel is COPIED
-     * (2) the CoordinateSequenceFactory is NOT COPIED
-     *     and must be available for the whole lifetime
-     *     of the GeometryFactory
-     */
-    GeometryFactory(const PrecisionModel* pm, int newSRID,
-                    CoordinateSequenceFactory* nCoordinateSequenceFactory);
-
-    /**
-     * \brief
-     * Constructs a GeometryFactory that generates Geometries having the
-     * given CoordinateSequence implementation, a double-precision floating
-     * PrecisionModel and a spatial-reference ID of 0.
-     */
-    GeometryFactory(CoordinateSequenceFactory* nCoordinateSequenceFactory);
 
     /**
      * \brief
@@ -526,7 +521,6 @@ private:
 
     PrecisionModel precisionModel;
     int SRID;
-    const CoordinateSequenceFactory* coordinateListFactory;
 
     mutable int _refCount;
     bool _autoDestroy;
