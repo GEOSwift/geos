@@ -68,7 +68,7 @@ private:
     * @param triList the triangulation
     * @return the points in the boundary of the triangulation
     */
-    static std::vector<Coordinate> traceBoundary(
+    static geom::CoordinateSequence traceBoundary(
         TriList<HullTri>& triList);
 
     static HullTri* findBorderTri(
@@ -124,7 +124,7 @@ public:
                 : triList(p_triList)
                 {};
 
-            void visit(std::array<QuadEdge*, 3>& triEdges);
+            void visit(std::array<QuadEdge*, 3>& triEdges) override;
 
     }; // HullTriVisitor
 

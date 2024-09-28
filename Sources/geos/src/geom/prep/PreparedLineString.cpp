@@ -23,7 +23,6 @@
 #include <geos/geom/prep/PreparedLineStringIntersects.h>
 #include <geos/geom/prep/PreparedLineStringNearestPoints.h>
 #include <geos/geom/GeometryFactory.h>
-#include <geos/geom/CoordinateSequenceFactory.h>
 #include <geos/noding/SegmentStringUtil.h>
 #include <geos/noding/FastSegmentSetIntersectionFinder.h>
 #include <geos/operation/distance/IndexedFacetDistance.h>
@@ -58,6 +57,8 @@ PreparedLineString::getIntersectionFinder()
 bool
 PreparedLineString::intersects(const geom::Geometry* g) const
 {
+    geos::util::ensureNoCurvedComponents(g);
+
     if(! envelopesIntersect(g)) {
         return false;
     }
@@ -89,6 +90,12 @@ double
 PreparedLineString::distance(const geom::Geometry* g) const
 {
     return PreparedLineStringDistance::distance(*this, g);
+}
+
+bool
+PreparedLineString::isWithinDistance(const geom::Geometry* g, double d) const
+{
+    return PreparedLineStringDistance(*this).isWithinDistance(g, d);
 }
 
 

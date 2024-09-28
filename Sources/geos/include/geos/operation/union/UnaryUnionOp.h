@@ -27,8 +27,9 @@
 #include <geos/geom/LineString.h>
 #include <geos/geom/Polygon.h>
 #include <geos/geom/util/GeometryExtracter.h>
-#include <geos/operation/overlay/OverlayOp.h>
 #include <geos/operation/union/CascadedPolygonUnion.h>
+
+#include <geos/util.h>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -170,6 +171,8 @@ private:
     void
     extract(const geom::Geometry& geom)
     {
+        util::ensureNoCurvedComponents(geom);
+
         using namespace geom::util;
 
         if(! geomFact) {
@@ -196,8 +199,6 @@ private:
     std::unique_ptr<geom::Geometry>
     unionNoOpt(const geom::Geometry& g0)
     {
-        using geos::operation::overlay::OverlayOp;
-
         if(! empty.get()) {
             empty = geomFact->createEmptyGeometry();
         }

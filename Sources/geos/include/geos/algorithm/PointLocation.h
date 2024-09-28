@@ -19,11 +19,18 @@
 #pragma once
 
 #include <geos/export.h>
-#include <geos/geom/Coordinate.h>
-#include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/Location.h>
+#include <vector>
 
 namespace geos {
+
+namespace geom {
+class Coordinate;
+class CoordinateXY;
+class CoordinateSequence;
+class Curve;
+}
+
 namespace algorithm { // geos::algorithm
 
 /** \brief
@@ -37,6 +44,16 @@ class GEOS_DLL PointLocation {
 public:
 
     /** \brief
+     * Tests whether a point lies on a line segment.
+     * 
+     * @param p the point to test
+     * @param p0 a point of the line segment
+     * @param p1 a point of the line segment
+     * @return true if the point lies on the line segment
+     */
+    static bool isOnSegment(const geom::CoordinateXY& p, const geom::CoordinateXY& p0, const geom::CoordinateXY& p1);
+
+    /** \brief
      * Tests whether a point lies on the line defined by a
      * [CoordinateSequence](@ref geom::CoordinateSequence).
      *
@@ -45,7 +62,7 @@ public:
      * @return true if the point is a vertex of the line or lies in the interior
      *         of a line segment in the line
      */
-    static bool isOnLine(const geom::Coordinate& p, const geom::CoordinateSequence* line);
+    static bool isOnLine(const geom::CoordinateXY& p, const geom::CoordinateSequence* line);
 
     /** \brief
      * Tests whether a point lies inside or on a ring.
@@ -63,8 +80,8 @@ public:
      *
      * @see RayCrossingCounter::locatePointInRing()
      */
-    static bool isInRing(const geom::Coordinate& p, const std::vector<const geom::Coordinate*>& ring);
-    static bool isInRing(const geom::Coordinate& p, const geom::CoordinateSequence* ring);
+    static bool isInRing(const geom::CoordinateXY& p, const std::vector<const geom::Coordinate*>& ring);
+    static bool isInRing(const geom::CoordinateXY& p, const geom::CoordinateSequence* ring);
 
     /** \brief
      * Determines whether a point lies in the interior, on the boundary, or in the
@@ -78,8 +95,9 @@ public:
      *             first point identical to last point)
      * @return the [Location](@ref geom::Location) of p relative to the ring
      */
-    static geom::Location locateInRing(const geom::Coordinate& p, const std::vector<const geom::Coordinate*>& ring);
-    static geom::Location locateInRing(const geom::Coordinate& p, const geom::CoordinateSequence& ring);
+    static geom::Location locateInRing(const geom::CoordinateXY& p, const std::vector<const geom::Coordinate*>& ring);
+    static geom::Location locateInRing(const geom::CoordinateXY& p, const geom::CoordinateSequence& ring);
+    static geom::Location locateInRing(const geom::CoordinateXY& p, const geom::Curve& ring);
 
 };
 

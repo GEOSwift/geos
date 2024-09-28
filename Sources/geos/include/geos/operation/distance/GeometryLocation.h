@@ -51,7 +51,7 @@ private:
     const geom::Geometry* component;
     std::size_t segIndex;
     bool inside_area;
-    geom::Coordinate pt;
+    geom::CoordinateXY pt;
 public:
     /** \brief
      * A Special value of segmentIndex used for locations
@@ -61,6 +61,13 @@ public:
      * and thus do not have an associated segment index.
      */
     static const int INSIDE_AREA = -1;
+
+    GeometryLocation() :
+        component(nullptr),
+        segIndex(0),
+        inside_area(false),
+        pt()
+    {}
 
     /** \brief
      * Constructs a GeometryLocation specifying a point on a geometry,
@@ -72,7 +79,7 @@ public:
      * @param pt the coordinate of the location
      */
     GeometryLocation(const geom::Geometry* component,
-                     std::size_t segIndex, const geom::Coordinate& pt);
+                     std::size_t segIndex, const geom::CoordinateXY& pt);
 
     /** \brief
      * Constructs a GeometryLocation specifying a point inside an
@@ -82,7 +89,7 @@ public:
      * @param pt the coordinate of the location
      */
     GeometryLocation(const geom::Geometry* component,
-                     const geom::Coordinate& pt);
+                     const geom::CoordinateXY& pt);
 
     /**
      * Returns the geometry component on (or in) which this location occurs.
@@ -102,7 +109,7 @@ public:
     /**
      * Returns the geom::Coordinate of this location.
      */
-    geom::Coordinate& getCoordinate();
+    geom::CoordinateXY& getCoordinate();
 
     /** \brief
      * Tests whether this location represents a point

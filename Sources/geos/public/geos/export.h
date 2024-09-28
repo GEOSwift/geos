@@ -19,7 +19,7 @@
 #  if defined(GEOS_DLL_EXPORT)
 #    define GEOS_DLL   __declspec(dllexport)
 #  elif defined(GEOS_DLL_IMPORT)
-#    define GEOS_DLL   __declspec(dllimport)
+#    define GEOS_DLL   extern __declspec(dllimport)
 #  else
 #    define GEOS_DLL
 #  endif
@@ -30,4 +30,22 @@
 
 #if defined(_MSC_VER)
 #  pragma warning(disable: 4251) // identifier : class type needs to have dll-interface to be used by clients of class type2
+#endif
+
+
+/**********************************************************************
+ * Portability macros
+ **********************************************************************/
+
+#ifdef _MSC_VER
+#include <sal.h>
+#define GEOS_PRINTF_FORMAT _Printf_format_string_
+#define GEOS_PRINTF_FORMAT_ATTR(format_param, dots_param) /**/
+#elif __GNUC__
+#define GEOS_PRINTF_FORMAT /**/
+#define GEOS_PRINTF_FORMAT_ATTR(format_param, dots_param) \
+  __attribute__((format(printf, format_param, dots_param)))
+#else
+#define GEOS_PRINTF_FORMAT /**/
+#define GEOS_PRINTF_FORMAT_ATTR(format_param, dots_param) /**/
 #endif

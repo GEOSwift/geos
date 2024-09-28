@@ -20,6 +20,7 @@
 #include <geos/noding/SegmentIntersector.h>
 #include <geos/noding/BasicSegmentString.h>
 #include <geos/noding/SegmentSetMutualIntersector.h>
+#include <geos/constants.h>
 
 #include <set>
 #include <limits>
@@ -71,8 +72,6 @@ private:
 
     // Members
 
-    static constexpr std::size_t NO_INDEX = std::numeric_limits<std::size_t>::max();
-
     const Polygon* inputPolygon;
 
     //-- normalized, sorted and noded polygon rings
@@ -82,7 +81,7 @@ private:
     //-- indicates whether a hole should be testing for touching
     std::vector<bool> isHoleTouchingHint;
 
-    std::vector<Coordinate> joinedRing;
+    CoordinateSequence joinedRing;
 
     // a sorted and searchable version of the joinedRing
     std::set<Coordinate> joinedPts;
@@ -160,7 +159,7 @@ private:
     * @return true if the line to the point is interior to the ring corner
     */
     static bool isLineInterior(
-        const std::vector<Coordinate>& ring,
+        const CoordinateSequence& ring,
         std::size_t ringIndex,
         const Coordinate& linePt);
 
@@ -209,7 +208,7 @@ private:
         const Polygon* poly);
 
     static std::size_t findLowestLeftVertexIndex(
-        const CoordinateSequence& coords);
+        const CoordinateSequence& holeCoords);
 
     /**
     * Tests whether the interior of a line segment intersects the polygon boundary.

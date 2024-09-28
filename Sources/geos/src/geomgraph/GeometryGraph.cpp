@@ -34,7 +34,6 @@
 #include <geos/geomgraph/index/SegmentIntersector.h>
 #include <geos/geomgraph/index/EdgeSetIntersector.h>
 
-#include <geos/geom/CoordinateArraySequence.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/Location.h>
 #include <geos/geom/Point.h>
@@ -127,7 +126,7 @@ GeometryGraph::getBoundaryPoints()
     if(! boundaryPoints.get()) {
         // Collection will be destroyed by GeometryGraph dtor
         std::vector<Node*>* coll = getBoundaryNodes();
-        boundaryPoints.reset(new CoordinateArraySequence(coll->size()));
+        boundaryPoints.reset(new CoordinateSequence(coll->size()));
         std::size_t i = 0;
         for(std::vector<Node*>::iterator it = coll->begin(), endIt = coll->end();
                 it != endIt; ++it) {
@@ -170,6 +169,8 @@ void
 GeometryGraph::add(const Geometry* g)
 //throw (UnsupportedOperationException *)
 {
+    util::ensureNoCurvedComponents(g);
+
     if(g->isEmpty()) {
         return;
     }
@@ -209,8 +210,7 @@ void
 GeometryGraph::addCollection(const GeometryCollection* gc)
 {
     for(std::size_t i = 0, n = gc->getNumGeometries(); i < n; ++i) {
-        const Geometry* g = gc->getGeometryN(i);
-        add(g);
+        add(gc->getGeometryN(i));
     }
 }
 
@@ -220,7 +220,7 @@ GeometryGraph::addCollection(const GeometryCollection* gc)
 void
 GeometryGraph::addPoint(const Point* p)
 {
-    const Coordinate& coord = *(p->getCoordinate());
+    const Coordinate& coord = p->getCoordinatesRO()->getAt(0);
     insertPoint(argIndex, coord, Location::INTERIOR);
 }
 
@@ -466,7 +466,7 @@ GeometryGraph::addSelfIntersectionNodes(uint8_t p_argIndex)
 {
     for(Edge* e : *edges) {
         Location eLoc = e->getLabel().getLocation(p_argIndex);
-        EdgeIntersectionList& eiL = e->eiList;
+        const EdgeIntersectionList& eiL = e->eiList;
         for(const EdgeIntersection& ei : eiL) {
             addSelfIntersectionNode(p_argIndex, ei.coord, eLoc);
             GEOS_CHECK_FOR_INTERRUPTS();

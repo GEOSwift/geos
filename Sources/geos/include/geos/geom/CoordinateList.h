@@ -21,6 +21,8 @@
 
 #include <geos/export.h>
 #include <geos/geom/Coordinate.h>
+#include <geos/geom/CoordinateSequence.h>
+#include <geos/util.h>
 
 #include <list>
 #include <ostream> // for operator<<
@@ -44,7 +46,7 @@ namespace geom { // geos::geom
 
 /** \brief
  * A list of {@link Coordinate}s, which may
- * be set to prevent repeated coordinates from occuring in the list.
+ * be set to prevent repeated coordinates from occurring in the list.
  *
  * Use this class when fast insertions and removal at arbitrary
  * position is needed.
@@ -70,9 +72,15 @@ public:
      *
      * @param v the initial coordinates
      */
-    CoordinateList(const std::vector<Coordinate>& v)
+    template<typename T>
+    CoordinateList(const T& v)
         :
         coords(v.begin(), v.end())
+    {
+    }
+
+    CoordinateList(const CoordinateSequence& v)
+        : CoordinateList(v.items<Coordinate>())
     {
     }
 
@@ -175,6 +183,15 @@ public:
         ret->assign(coords.begin(), coords.end());
         return ret;
     }
+
+    std::unique_ptr<geom::CoordinateSequence>
+    toCoordinateSequence() const
+    {
+        auto ret = detail::make_unique<geom::CoordinateSequence>();
+        ret->add(begin(), end());
+        return ret;
+    }
+
     void
     closeRing()
     {

@@ -23,9 +23,6 @@
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/LineString.h>
 
-#include <typeinfo>
-#include <cassert>
-
 using namespace geos::geom;
 
 namespace geos {
@@ -38,40 +35,36 @@ namespace locate { // geos.algorithm
  * is more complex, since it has to take into account the boundaryDetermination rule
  */
 geom::Location
-SimplePointInAreaLocator::locate(const Coordinate& p, const Geometry* geom)
+SimplePointInAreaLocator::locate(const CoordinateXY& p, const Geometry* geom)
 {
-    if(geom->isEmpty()) {
-        return Location::EXTERIOR;
-    }
+    return locateInGeometry(p, geom);
+}
 
+bool
+SimplePointInAreaLocator::isContained(const CoordinateXY& p, const Geometry* geom)
+{
+    return Location::EXTERIOR != locate(p, geom);
+}
+
+geom::Location
+SimplePointInAreaLocator::locateInGeometry(const CoordinateXY& p, const Geometry* geom)
+{
     /*
      * Do a fast check against the geometry envelope first
      */
     if (! geom->getEnvelopeInternal()->intersects(p))
         return Location::EXTERIOR;
 
-    return locateInGeometry(p, geom);
-}
-
-bool
-SimplePointInAreaLocator::isContained(const Coordinate& p, const Geometry* geom)
-{
-    return Location::EXTERIOR != locate(p, geom);
-}
-
-geom::Location
-SimplePointInAreaLocator::locateInGeometry(const Coordinate& p, const Geometry* geom)
-{
     if (geom->getDimension() < 2) {
         return Location::EXTERIOR;
     }
 
     if (geom->getNumGeometries() == 1) {
-        auto poly = dynamic_cast<const Polygon*>(geom->getGeometryN(0));
-        if (poly) {
-            return locatePointInPolygon(p, poly);
+        auto typ = geom->getGeometryTypeId();
+        if (typ == GEOS_POLYGON || typ == GEOS_CURVEPOLYGON) {
+            auto surface = static_cast<const Surface*>(geom);
+            return locatePointInSurface(p, *surface);
         }
-        // Else it is a collection with a single element. Will be handled below.
     }
     for (std::size_t i = 0; i < geom->getNumGeometries(); i++) {
         const Geometry* gi = geom->getGeometryN(i);
@@ -85,28 +78,25 @@ SimplePointInAreaLocator::locateInGeometry(const Coordinate& p, const Geometry* 
 }
 
 geom::Location
-SimplePointInAreaLocator::locatePointInPolygon(const Coordinate& p, const Polygon* poly)
+SimplePointInAreaLocator::locatePointInSurface(const CoordinateXY& p, const Surface& surface)
 {
-    if(poly->isEmpty()) {
+    if(surface.isEmpty()) {
         return Location::EXTERIOR;
     }
-    if(!poly->getEnvelopeInternal()->contains(p)) {
+    if(!surface.getEnvelopeInternal()->contains(p)) {
         return Location::EXTERIOR;
     }
-    const LineString* shell = poly->getExteriorRing();
-    const CoordinateSequence* cl;
-    cl = shell->getCoordinatesRO();
-    Location shellLoc = PointLocation::locateInRing(p, *cl);
+    const Curve& shell = *surface.getExteriorRing();
+    Location shellLoc = PointLocation::locateInRing(p, shell);
     if(shellLoc != Location::INTERIOR) {
         return shellLoc;
     }
 
     // now test if the point lies in or on the holes
-    for(std::size_t i = 0, n = poly->getNumInteriorRing(); i < n; i++) {
-        const LineString* hole = poly->getInteriorRingN(i);
-        if(hole->getEnvelopeInternal()->contains(p)) {
-            cl = hole->getCoordinatesRO();
-            Location holeLoc = RayCrossingCounter::locatePointInRing(p, *cl);
+    for(std::size_t i = 0; i < surface.getNumInteriorRing(); i++) {
+        const Curve& hole = *surface.getInteriorRingN(i);
+        if(hole.getEnvelopeInternal()->contains(p)) {
+            Location holeLoc = RayCrossingCounter::locatePointInRing(p, hole);
             if(holeLoc == Location::BOUNDARY) {
                 return Location::BOUNDARY;
             }

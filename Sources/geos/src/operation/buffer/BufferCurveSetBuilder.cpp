@@ -14,7 +14,7 @@
  *
  **********************************************************************
  *
- * Last port: operation/buffer/BufferCurveSetBuilder.java r378 (JTS-1.12)
+ * Last port: operation/buffer/BufferCurveSetBuilder.java 4c343e79f (JTS-1.19)
  *
  **********************************************************************/
 
@@ -38,10 +38,12 @@
 #include <geos/geomgraph/Label.h>
 #include <geos/noding/NodedSegmentString.h>
 #include <geos/util.h>
+#include <geos/io/WKTWriter.h>
 
 #include <algorithm> // for min
 #include <cmath>
 #include <cassert>
+#include <iomanip>
 #include <memory>
 #include <vector>
 #include <typeinfo>
@@ -113,7 +115,7 @@ BufferCurveSetBuilder::addCurve(CoordinateSequence* coord,
     Label* newlabel = new Label(0, Location::BOUNDARY, leftLoc, rightLoc);
 
     // coord ownership transferred to SegmentString
-    SegmentString* e = new NodedSegmentString(coord, newlabel);
+    SegmentString* e = new NodedSegmentString(coord, coord->hasZ(), coord->hasM(), newlabel);
 
     // SegmentString doesnt own the sequence, so we need to delete in
     // the destructor
@@ -245,6 +247,10 @@ BufferCurveSetBuilder::addPolygon(const Polygon* p)
     auto shellCoord =
             operation::valid::RepeatedPointRemover::removeRepeatedAndInvalidPoints(shell->getCoordinatesRO());
 
+    if (shellCoord->isEmpty()) {
+        throw util::GEOSException("Shell empty after removing invalid points");
+    }
+
     // don't attempt to buffer a polygon
     // with too few distinct vertices
     if(distance <= 0.0 && shellCoord->size() < 3) {
@@ -333,7 +339,7 @@ BufferCurveSetBuilder::addRingSide(const CoordinateSequence* coord,
     }
     std::vector<CoordinateSequence*> lineList;
     curveBuilder.getRingCurve(coord, side, offsetDistance, lineList);
-    // ASSERT: lineList contains exactly 1 curve (this is teh JTS semantics)
+    // ASSERT: lineList contains exactly 1 curve (this is the JTS semantics)
     if (lineList.size() > 0) {
         const CoordinateSequence* curve = lineList[0];
         /**
@@ -353,56 +359,67 @@ BufferCurveSetBuilder::addRingSide(const CoordinateSequence* coord,
 /* private static*/
 bool
 BufferCurveSetBuilder::isRingCurveInverted(
-    const CoordinateSequence* inputPts, double dist,
-    const CoordinateSequence* curvePts)
+    const CoordinateSequence* inputRing, double dist,
+    const CoordinateSequence* curveRing)
 {
     if (dist == 0.0) return false;
     /**
      * Only proper rings can invert.
      */
-    if (inputPts->size() <= 3) return false;
+    if (inputRing->size() <= 3) return false;
     /**
      * Heuristic based on low chance that a ring with many vertices will invert.
      * This low limit ensures this test is fairly efficient.
      */
-    if (inputPts->size() >= MAX_INVERTED_RING_SIZE) return false;
+    if (inputRing->size() >= MAX_INVERTED_RING_SIZE) return false;
 
     /**
      * An inverted curve has no more points than the input ring.
      * This also eliminates concave inputs (which will produce fillet arcs)
      */
-    if (curvePts->size() > INVERTED_CURVE_VERTEX_FACTOR * inputPts->size()) return false;
+    if (curveRing->size() > INVERTED_CURVE_VERTEX_FACTOR * inputRing->size()) return false;
 
     /**
-     * Check if the curve vertices are all closer to the input ring
-     * than the buffer distance.
-     * If so, the curve is NOT a valid buffer curve.
+     * If curve contains points which are on the buffer, 
+     * it is not inverted and can be included in the raw curves.
      */
-    double distTol = NEARNESS_FACTOR * fabs(dist);
-    double maxDist = maxDistance(curvePts, inputPts);
-    bool isCurveTooClose = maxDist < distTol;
-    return isCurveTooClose;
+    if (hasPointOnBuffer(inputRing, dist, curveRing))
+      return false;
+
+    //-- curve is inverted, so discard it
+    return true;
+//std::cout << std::setprecision(10) << io::WKTWriter::toLineString(*curveRing) << std::endl;
+//std::cout << "isRingCurveInverted: " << isCurveTooClose <<  "  maxDist = " << maxDist << std::endl;
 }
 
-/**
- * Computes the maximum distance out of a set of points to a linestring.
- *
- * @param pts the points
- * @param line the linestring vertices
- * @return the maximum distance
- */
-/* private static */
-double
-BufferCurveSetBuilder::maxDistance(const CoordinateSequence*  pts, const CoordinateSequence*  line) {
-    double maxDistance = 0;
-    for (std::size_t i = 0; i < pts->size(); i++) {
-        const Coordinate& p = pts->getAt(i);
-        double dist = Distance::pointToSegmentString(p, line);
-        if (dist > maxDistance) {
-            maxDistance = dist;
+/* private static*/
+bool
+BufferCurveSetBuilder::hasPointOnBuffer(
+    const CoordinateSequence* inputRing, double dist, 
+    const CoordinateSequence* curveRing) 
+{
+    double distTol = NEARNESS_FACTOR * fabs(dist);
+
+    for (std::size_t i = 0; i < curveRing->size(); i++) {
+        const CoordinateXY& v = curveRing->getAt(i);
+
+        //-- check curve vertices
+        double distVertex = Distance::pointToSegmentString(v, inputRing);
+        if (distVertex > distTol) {
+            return true; 
+        }
+
+        //-- check curve segment midpoints
+        std::size_t iNext = (i < curveRing->size() - 1) ? i + 1 : 0;
+        const CoordinateXY& vnext = curveRing->getAt(iNext);
+        CoordinateXY midPt = LineSegment::midPoint(v, vnext);
+
+        double distMid = Distance::pointToSegmentString(midPt, inputRing);
+        if (distMid > distTol) {
+            return true; 
         }
     }
-    return maxDistance;
+    return false;
 }
 
 /*private*/
@@ -438,7 +455,7 @@ BufferCurveSetBuilder::isTriangleErodedCompletely(
 {
     Triangle tri(triangleCoord->getAt(0), triangleCoord->getAt(1), triangleCoord->getAt(2));
 
-    Coordinate inCentre;
+    CoordinateXY inCentre;
     tri.inCentre(inCentre);
     double distToCentre = Distance::pointToSegment(inCentre, tri.p0, tri.p1);
     bool ret = distToCentre < std::fabs(bufferDistance);

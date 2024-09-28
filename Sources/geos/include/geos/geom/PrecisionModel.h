@@ -77,8 +77,6 @@ namespace geom { // geos::geom
  *
  * It is also supported to specify a precise grid size
  * by providing it as a negative scale factor.
- * This allows setting a precise grid size rather than using a fractional scale,
- * which provides more accurate and robust rounding.
  * For example, to specify rounding to the nearest 1000 use a scale factor of -1000.
  *
  * Coordinates are represented internally as Java double-precision values.
@@ -183,7 +181,7 @@ public:
     double makePrecise(double val) const;
 
     /// Rounds the given Coordinate to the PrecisionModel grid.
-    void makePrecise(Coordinate& coord) const
+    void makePrecise(CoordinateXY& coord) const
     {
         // optimization for full precision
         if(modelType == FLOATING) {
@@ -194,7 +192,7 @@ public:
         coord.y = makePrecise(coord.y);
     };
 
-    void makePrecise(Coordinate* coord) const
+    void makePrecise(CoordinateXY* coord) const
     {
         assert(coord);
         return makePrecise(*coord);
@@ -238,7 +236,7 @@ public:
     /**
     * Computes the grid size for a fixed precision model.
     * This is equal to the reciprocal of the scale factor.
-    * If the grid size has been set explicity (via a negative scale factor)
+    * If the grid size has been set explicitly (via a negative scale factor)
     * it will be returned.
     *
     * @return the grid size at a fixed precision scale.
@@ -347,6 +345,11 @@ private:
      */
     void setScale(double newScale);
     // throw IllegalArgumentException
+
+    /** \brief
+     * Snaps a value to nearest integer, if within tolerance.
+     */
+    static double snapToInt(double val, double tolerance);
 
     Type modelType;
 

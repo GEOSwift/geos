@@ -23,6 +23,7 @@
 #include <geos/io/WKBWriter.h>
 #include <geos/io/GeoJSONReader.h>
 #include <geos/io/GeoJSONWriter.h>
+#include <geos/operation/buffer/BufferParameters.h>
 #include <geos/util/Interrupt.h>
 
 #include <stdexcept>
@@ -32,10 +33,15 @@
 #pragma warning(disable : 4099)
 #endif
 
-// Some extra magic to make type declarations in geos_c.h work - for cross-checking of types in header.
+// Some extra magic to make type declarations in geos_c.h work -
+// for cross-checking of types in header.
+// NOTE: the below defines or struct definition must be kept in exact
+// sync between geos_c.cpp and geos_ts_c.cpp to avoid C++ One Definition Rule
+// violations.
 #define GEOSGeometry geos::geom::Geometry
 #define GEOSPreparedGeometry geos::geom::prep::PreparedGeometry
 #define GEOSCoordSequence geos::geom::CoordinateSequence
+#define GEOSBufferParams geos::operation::buffer::BufferParameters
 #define GEOSSTRtree geos::index::strtree::TemplateSTRtree<void*>
 #define GEOSWKTReader geos::io::WKTReader
 #define GEOSWKTWriter geos::io::WKTWriter
@@ -43,8 +49,12 @@
 #define GEOSWKBWriter geos::io::WKBWriter
 #define GEOSGeoJSONReader geos::io::GeoJSONReader
 #define GEOSGeoJSONWriter geos::io::GeoJSONWriter
-typedef struct GEOSBufParams_t GEOSBufferParams;
-typedef struct GEOSMakeValidParams_t GEOSMakeValidParams;
+
+// Implementation struct for the GEOSMakeValidParams object
+typedef struct {
+    int method;
+    int keepCollapsed;
+} GEOSMakeValidParams;
 
 #include "geos_c.h"
 
@@ -136,7 +146,7 @@ extern "C" {
 
     /****************************************************************
     ** relate()-related functions
-    ** return 0 = false, 1 = true, 2 = error occured
+    ** return 0 = false, 1 = true, 2 = error occurred
     **
     */
     char
@@ -203,15 +213,15 @@ extern "C" {
 //------------------------------------------------------------------
 
     char
-    GEOSRelatePattern(const Geometry* g1, const Geometry* g2, const char* pat)
+    GEOSRelatePattern(const Geometry* g1, const Geometry* g2, const char* imPattern)
     {
-        return GEOSRelatePattern_r(handle, g1, g2, pat);
+        return GEOSRelatePattern_r(handle, g1, g2, imPattern);
     }
 
     char
-    GEOSRelatePatternMatch(const char* mat, const char* pat)
+    GEOSRelatePatternMatch(const char* intMatrix, const char* imPattern)
     {
-        return GEOSRelatePatternMatch_r(handle, mat, pat);
+        return GEOSRelatePatternMatch_r(handle, intMatrix, imPattern);
     }
 
     char*
@@ -265,6 +275,12 @@ extern "C" {
     GEOSEqualsExact(const Geometry* g1, const Geometry* g2, double tolerance)
     {
         return GEOSEqualsExact_r(handle, g1, g2, tolerance);
+    }
+
+    char
+    GEOSEqualsIdentical(const Geometry* g1, const Geometry* g2)
+    {
+        return GEOSEqualsIdentical_r(handle, g1, g2);
     }
 
     int
@@ -478,6 +494,15 @@ extern "C" {
     }
 
     Geometry*
+    GEOSConcaveHullByLength(const Geometry* g,
+                    double length,
+                    unsigned int allowHoles)
+
+    {
+        return GEOSConcaveHullByLength_r(handle, g, length, allowHoles);
+    }
+
+    Geometry*
     GEOSPolygonHullSimplify(const Geometry* g,
                             unsigned int isOuter,
                             double vertexNumFraction)
@@ -601,6 +626,12 @@ extern "C" {
     }
 
     Geometry*
+    GEOSDisjointSubsetUnion(const Geometry* g)
+    {
+        return GEOSDisjointSubsetUnion_r(handle, g);
+    }
+
+    Geometry*
     GEOSNode(const Geometry* g)
     {
         return GEOSNode_r(handle, g);
@@ -658,6 +689,12 @@ extern "C" {
     GEOSNormalize(Geometry* g)
     {
         return GEOSNormalize_r(handle, g);
+    }
+
+    int
+    GEOSOrientPolygons(Geometry* g, int exteriorCW)
+    {
+        return GEOSOrientPolygons_r(handle, g, exteriorCW);
     }
 
     int
@@ -774,6 +811,16 @@ extern "C" {
     }
 
     /*
+     * For POINT
+     * returns 0 on exception, otherwise 1
+     */
+    int
+    GEOSGeomGetM(const Geometry* g1, double* m)
+    {
+        return GEOSGeomGetM_r(handle, g1, m);
+    }
+
+    /*
      * Call only on polygon
      * Return a copy of the internal Geometry.
      */
@@ -816,6 +863,12 @@ extern "C" {
     GEOSGeom_createCollection(int type, Geometry** geoms, unsigned int ngeoms)
     {
         return GEOSGeom_createCollection_r(handle, type, geoms, ngeoms);
+    }
+
+    Geometry**
+    GEOSGeom_releaseCollection(Geometry* collection, unsigned int * ngeoms)
+    {
+        return GEOSGeom_releaseCollection_r(handle, collection, ngeoms);
     }
 
     Geometry*
@@ -912,6 +965,12 @@ extern "C" {
     }
 
     Geometry*
+    GEOSLineSubstring(const Geometry* g, double start_fraction, double end_fraction)
+    {
+        return GEOSLineSubstring_r(handle, g, start_fraction, end_fraction);
+    }
+
+    Geometry*
     GEOSReverse(const Geometry* g)
     {
         return GEOSReverse_r(handle, g);
@@ -945,6 +1004,12 @@ extern "C" {
     GEOSHasZ(const Geometry* g)
     {
         return GEOSHasZ_r(handle, g);
+    }
+
+    char
+    GEOSHasM(const Geometry* g)
+    {
+        return GEOSHasM_r(handle, g);
     }
 
     int
@@ -1137,6 +1202,24 @@ extern "C" {
     GEOSGeom_createPolygon(Geometry* shell, Geometry** holes, unsigned int nholes)
     {
         return GEOSGeom_createPolygon_r(handle, shell, holes, nholes);
+    }
+
+    Geometry*
+    GEOSGeom_createCircularString(CoordinateSequence* cs)
+    {
+        return GEOSGeom_createCircularString_r(handle, cs);
+    }
+
+    Geometry*
+    GEOSGeom_createCompoundCurve(Geometry** curves, unsigned int ngeoms)
+    {
+        return GEOSGeom_createCompoundCurve_r(handle, curves, ngeoms);
+    }
+
+    Geometry*
+    GEOSGeom_createCurvePolygon(Geometry* shell, Geometry** holes, unsigned int nholes)
+    {
+        return GEOSGeom_createCurvePolygon_r(handle, shell, holes, nholes);
     }
 
     Geometry*
@@ -1388,6 +1471,11 @@ extern "C" {
         GEOSWKBWriter_setIncludeSRID_r(handle, writer, newIncludeSRID);
     }
 
+    int
+    GEOS_printDouble(double d, unsigned int precision, char *result) {
+        return WKTWriter::writeTrimmedNumber(d, precision, result);
+    }
+
     /* GeoJSON Reader */
     GeoJSONReader*
     GEOSGeoJSONReader_create()
@@ -1450,6 +1538,12 @@ extern "C" {
     }
 
     char
+    GEOSPreparedContainsXY(const geos::geom::prep::PreparedGeometry* pg1, double x, double y)
+    {
+        return GEOSPreparedContainsXY_r(handle, pg1, x, y);
+    }
+
+    char
     GEOSPreparedContainsProperly(const geos::geom::prep::PreparedGeometry* pg1, const Geometry* g2)
     {
         return GEOSPreparedContainsProperly_r(handle, pg1, g2);
@@ -1486,6 +1580,12 @@ extern "C" {
     }
 
     char
+    GEOSPreparedIntersectsXY(const geos::geom::prep::PreparedGeometry* pg1, double x, double y)
+    {
+        return GEOSPreparedIntersectsXY_r(handle, pg1, x, y);
+    }
+
+    char
     GEOSPreparedOverlaps(const geos::geom::prep::PreparedGeometry* pg1, const Geometry* g2)
     {
         return GEOSPreparedOverlaps_r(handle, pg1, g2);
@@ -1501,6 +1601,18 @@ extern "C" {
     GEOSPreparedWithin(const geos::geom::prep::PreparedGeometry* pg1, const Geometry* g2)
     {
         return GEOSPreparedWithin_r(handle, pg1, g2);
+    }
+
+    char *
+    GEOSPreparedRelate(const geos::geom::prep::PreparedGeometry* pg1, const Geometry* g2)
+    {
+        return GEOSPreparedRelate_r(handle, pg1, g2);
+    }
+
+    char
+    GEOSPreparedRelatePattern(const geos::geom::prep::PreparedGeometry* pg1, const Geometry* g2, const char* imPattern)
+    {
+        return GEOSPreparedRelatePattern_r(handle, pg1, g2, imPattern);
     }
 
     CoordinateSequence*
@@ -1525,6 +1637,12 @@ extern "C" {
     GEOSSTRtree_create(std::size_t nodeCapacity)
     {
         return GEOSSTRtree_create_r(handle, nodeCapacity);
+    }
+
+    int
+    GEOSSTRtree_build(GEOSSTRtree* tree)
+    {
+        return GEOSSTRtree_build_r(handle, tree);
     }
 
     void
@@ -1641,6 +1759,24 @@ extern "C" {
     }
 
     geos::geom::Geometry*
+    GEOSGeom_createEmptyCircularString()
+    {
+        return GEOSGeom_createEmptyCircularString_r(handle);
+    }
+
+    geos::geom::Geometry*
+    GEOSGeom_createEmptyCompoundCurve()
+    {
+        return GEOSGeom_createEmptyCompoundCurve_r(handle);
+    }
+
+    geos::geom::Geometry*
+    GEOSGeom_createEmptyCurvePolygon()
+    {
+        return GEOSGeom_createEmptyCurvePolygon_r(handle);
+    }
+
+    geos::geom::Geometry*
     GEOSGeom_createRectangle(double xmin, double ymin, double xmax,
                             double ymax)
     {
@@ -1727,9 +1863,9 @@ extern "C" {
     }
 
     Geometry*
-    GEOSVoronoiDiagram(const Geometry* g, const Geometry* env, double tolerance, int onlyEdges)
+    GEOSVoronoiDiagram(const Geometry* g, const Geometry* env, double tolerance, int flags)
     {
-        return GEOSVoronoiDiagram_r(handle, g, env, tolerance, onlyEdges);
+        return GEOSVoronoiDiagram_r(handle, g, env, tolerance, flags);
     }
 
     int
@@ -1742,5 +1878,21 @@ extern "C" {
                                          bx0, by0, bx1, by1,
                                          cx, cy);
     }
+
+    int
+    GEOSCoverageIsValid(
+        const Geometry* input,
+        double gapWidth,
+        Geometry** invalidEdges)
+    {
+        return GEOSCoverageIsValid_r(handle, input, gapWidth, invalidEdges);
+    }
+
+    Geometry*
+    GEOSCoverageSimplifyVW(const Geometry* input, double tolerance, int preserveBoundary)
+    {
+        return GEOSCoverageSimplifyVW_r(handle, input, tolerance, preserveBoundary);
+    }
+
 
 } /* extern "C" */

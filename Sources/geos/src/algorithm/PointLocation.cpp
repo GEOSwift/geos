@@ -20,10 +20,12 @@
 #include <vector>
 
 #include <geos/algorithm/LineIntersector.h>
+#include <geos/algorithm/Orientation.h>
 #include <geos/algorithm/PointLocation.h>
 #include <geos/algorithm/RayCrossingCounter.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/Coordinate.h>
+#include <geos/geom/Envelope.h>
 #include <geos/geom/Location.h>
 #include <geos/util/IllegalArgumentException.h>
 
@@ -32,27 +34,40 @@ namespace algorithm { // geos.algorithm
 
 /* public static */
 bool
-PointLocation::isOnLine(const geom::Coordinate& p, const geom::CoordinateSequence* pt)
+PointLocation::isOnSegment(const geom::CoordinateXY& p, const geom::CoordinateXY& p0, const geom::CoordinateXY& p1) 
+{
+    //-- test envelope first since it's faster
+    if (! geom::Envelope::intersects(p0, p1, p))
+        return false;
+    //-- handle zero-length segments
+    if (p.equals2D(p0))
+        return true;
+    bool isOnLine = Orientation::COLLINEAR == Orientation::index(p0, p1, p);
+    return isOnLine;
+}
+
+/* public static */
+bool
+PointLocation::isOnLine(const geom::CoordinateXY& p, const geom::CoordinateSequence* pt)
 {
     std::size_t ptsize = pt->getSize();
     if(ptsize == 0) {
         return false;
     }
 
-    const geom::Coordinate* pp = &(pt->getAt(0));
     for(std::size_t i = 1; i < ptsize; ++i) {
-        const geom::Coordinate& p1 = pt->getAt(i);
-        if(LineIntersector::hasIntersection(p, *pp, p1)) {
+        if(isOnSegment(p, 
+                        pt->getAt<geom::CoordinateXY>(i - 1), 
+                        pt->getAt<geom::CoordinateXY>(i))) {
             return true;
         }
-        pp = &p1;
     }
     return false;
 }
 
 /* public static */
 bool
-PointLocation::isInRing(const geom::Coordinate& p,
+PointLocation::isInRing(const geom::CoordinateXY& p,
                         const std::vector<const geom::Coordinate*>& ring)
 {
     return PointLocation::locateInRing(p, ring) != geom::Location::EXTERIOR;
@@ -60,7 +75,7 @@ PointLocation::isInRing(const geom::Coordinate& p,
 
 /* public static */
 bool
-PointLocation::isInRing(const geom::Coordinate& p,
+PointLocation::isInRing(const geom::CoordinateXY& p,
                         const geom::CoordinateSequence* ring)
 {
     return PointLocation::locateInRing(p, *ring) != geom::Location::EXTERIOR;
@@ -68,7 +83,7 @@ PointLocation::isInRing(const geom::Coordinate& p,
 
 /* public static */
 geom::Location
-PointLocation::locateInRing(const geom::Coordinate& p,
+PointLocation::locateInRing(const geom::CoordinateXY& p,
                             const std::vector<const geom::Coordinate*>& ring)
 {
     return RayCrossingCounter::locatePointInRing(p, ring);
@@ -76,9 +91,15 @@ PointLocation::locateInRing(const geom::Coordinate& p,
 
 /* public static */
 geom::Location
-PointLocation::locateInRing(const geom::Coordinate& p,
+PointLocation::locateInRing(const geom::CoordinateXY& p,
                             const geom::CoordinateSequence& ring)
 {
+    return RayCrossingCounter::locatePointInRing(p, ring);
+}
+
+geom::Location
+PointLocation::locateInRing(const geom::CoordinateXY& p,
+                            const geom::Curve& ring) {
     return RayCrossingCounter::locatePointInRing(p, ring);
 }
 

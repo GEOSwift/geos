@@ -38,8 +38,8 @@ namespace geom { // geos::geom
 
 /*public*/
 bool
-Envelope::intersects(const Coordinate& p1, const Coordinate& p2,
-                     const Coordinate& q)
+Envelope::intersects(const CoordinateXY& p1, const CoordinateXY& p2,
+                     const CoordinateXY& q)
 {
     //OptimizeIt shows that Math#min and Math#max here are a bottleneck.
     //Replace with direct comparisons. [Jon Aquino]
@@ -52,7 +52,7 @@ Envelope::intersects(const Coordinate& p1, const Coordinate& p2,
 
 /*public*/
 bool
-Envelope::intersects(const Coordinate& a, const Coordinate& b) const
+Envelope::intersects(const CoordinateXY& a, const CoordinateXY& b) const
 {
     // These comparisons look redundant, but an alternative using
     // std::minmax performs no better and compiles down to more
@@ -98,16 +98,6 @@ Envelope::Envelope(const std::string& str)
          strtod(values[1].c_str(), nullptr),
          strtod(values[2].c_str(), nullptr),
          strtod(values[3].c_str(), nullptr));
-}
-
-/*public*/
-bool
-Envelope::covers(double x, double y) const
-{
-    return std::isgreaterequal(x,  minx) &&
-           std::islessequal(x, maxx) &&
-           std::isgreaterequal(y, miny) &&
-           std::islessequal(y,  maxy);
 }
 
 /*public*/
@@ -160,22 +150,6 @@ Envelope::toString() const
     return s.str();
 }
 
-
-/*public*/
-size_t
-Envelope::hashCode() const
-{
-    auto hash = std::hash<double>{};
-
-    //Algorithm from Effective Java by Joshua Bloch [Jon Aquino]
-    std::size_t result = 17;
-    result = 37 * result + hash(minx);
-    result = 37 * result + hash(maxx);
-    result = 37 * result + hash(miny);
-    result = 37 * result + hash(maxy);
-    return result;
-}
-
 /*public static*/
 std::vector<std::string>
 Envelope::split(const std::string& str, const std::string& delimiters)
@@ -202,7 +176,7 @@ Envelope::split(const std::string& str, const std::string& delimiters)
 
 /*public*/
 bool
-Envelope::centre(Coordinate& p_centre) const
+Envelope::centre(CoordinateXY& p_centre) const
 {
     if(isNull()) {
         return false;

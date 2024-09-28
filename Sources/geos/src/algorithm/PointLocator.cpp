@@ -40,7 +40,7 @@ namespace algorithm { // geos.algorithm
 
 
 Location
-PointLocator::locate(const Coordinate& p, const Geometry* geom)
+PointLocator::locate(const CoordinateXY& p, const Geometry* geom)
 {
     if (geom->isEmpty()) {
         return Location::EXTERIOR;
@@ -72,9 +72,13 @@ PointLocator::locate(const Coordinate& p, const Geometry* geom)
 
 /* private */
 void
-PointLocator::computeLocation(const Coordinate& p, const Geometry* geom)
+PointLocator::computeLocation(const CoordinateXY& p, const Geometry* geom)
 {
-
+    //-- handle empty elements
+    if (geom->isEmpty()) {
+        return;
+    }
+    
     GeometryTypeId geomTypeId = geom->getGeometryTypeId();
     switch (geomTypeId)
     {
@@ -130,7 +134,6 @@ PointLocator::computeLocation(const Coordinate& p, const Geometry* geom)
         }
         default: {
             throw util::UnsupportedOperationException("unknown GeometryTypeId");
-            break;
         }
     }
 
@@ -150,10 +153,10 @@ PointLocator::updateLocationInfo(geom::Location loc)
 
 /* private */
 Location
-PointLocator::locate(const Coordinate& p, const Point* pt)
+PointLocator::locate(const CoordinateXY& p, const Point* pt)
 {
     // no point in doing envelope test, since equality test is just as fast
-    const Coordinate* ptCoord = pt->getCoordinate();
+    const CoordinateXY* ptCoord = pt->getCoordinate();
     if(ptCoord != nullptr && ptCoord->equals2D(p)) {
         return Location::INTERIOR;
     }
@@ -162,7 +165,7 @@ PointLocator::locate(const Coordinate& p, const Point* pt)
 
 /* private */
 Location
-PointLocator::locate(const Coordinate& p, const LineString* l)
+PointLocator::locate(const CoordinateXY& p, const LineString* l)
 {
     if(!l->getEnvelopeInternal()->intersects(p)) {
         return Location::EXTERIOR;
@@ -170,7 +173,7 @@ PointLocator::locate(const Coordinate& p, const LineString* l)
 
     const CoordinateSequence* seq = l->getCoordinatesRO();
     if(! l->isClosed()) {
-        if((p == seq->getAt(0)) || (p == seq->getAt(seq->getSize() - 1))) {
+        if((p == seq->getAt<CoordinateXY>(0)) || (p == seq->getAt<CoordinateXY>(seq->getSize() - 1))) {
             return Location::BOUNDARY;
         }
     }
@@ -182,7 +185,7 @@ PointLocator::locate(const Coordinate& p, const LineString* l)
 
 /* private */
 Location
-PointLocator::locateInPolygonRing(const Coordinate& p, const LinearRing* ring)
+PointLocator::locateInPolygonRing(const CoordinateXY& p, const LinearRing* ring)
 {
     if(!ring->getEnvelopeInternal()->intersects(p)) {
         return Location::EXTERIOR;
@@ -201,7 +204,7 @@ PointLocator::locateInPolygonRing(const Coordinate& p, const LinearRing* ring)
 
 /* private */
 Location
-PointLocator::locate(const Coordinate& p, const Polygon* poly)
+PointLocator::locate(const CoordinateXY& p, const Polygon* poly)
 {
     if(poly->isEmpty()) {
         return Location::EXTERIOR;
