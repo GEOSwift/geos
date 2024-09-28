@@ -12,12 +12,10 @@ Pod::Spec.new do |s|
     git: 'https://github.com/GEOSwift/geos.git',
     tag: s.version,
   }
-  s.platforms = {
-    ios: '12.0',
-    osx: '10.13',
-    tvos: '12.0',
-    watchos: '4.0',
-  }
+  s.ios.deployment_target = '12.0'
+  s.osx.deployment_target = '10.13'
+  s.tvos.deployment_target = '12.0'
+  s.watchos.deployment_target = '4.0'
   s.preserve_paths = 'Sources/geos/**/*'
   s.source_files = 'Sources/geos/{src,capi,public}/**/*'
   s.public_header_files = 'Sources/geos/public/**/*'
