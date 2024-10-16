@@ -11,10 +11,10 @@ available through Swift Package Manager and CocoaPods so you can use
 it in your Swift or Objective-C project. It is commonly used via
 [GEOSwift](https://github.com/GEOSwift/GEOSwift).
 
-## Requirements
+## Minimum Requirements
 
-* iOS 12.0+, macOS 10.13+, tvOS 12.0+, watchOS 4.0+ (Swift Package Manager, CocoaPods)
-* Linux (Swift Package Manager)
+* iOS 12.0, macOS 10.13, tvOS 12.0, watchOS 4.0, Linux
+* Swift 5.9 compiler
 
 > GEOS is licensed under LGPL 2.1 and its compatibility with static linking is
 at least controversial. Use of geos without dynamic linking is discouraged.
