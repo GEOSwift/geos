@@ -400,6 +400,9 @@ public:
     /// Substitute Coordinate list with a copy of the given vector
     void setPoints(const std::vector<Coordinate>& v);
 
+    /// Substitute Coordinate list with a copy of the given vector
+    void setPoints(const std::vector<CoordinateXY>& v);
+
     /// @}
     /// \defgroup add Adding methods
     /// @{
@@ -676,6 +679,16 @@ public:
                     filter->filter_ro(&c);
                 }
                 break;
+        }
+    }
+
+    template<typename F>
+    auto applyAt(size_t i, F&& fun) const {
+        switch(getCoordinateType()) {
+            case CoordinateType::XYZ:   return fun(getAt<Coordinate>(i));
+            case CoordinateType::XYM:   return fun(getAt<CoordinateXYM>(i));
+            case CoordinateType::XYZM:  return fun(getAt<CoordinateXYZM>(i));
+            default:                    return fun(getAt<CoordinateXY>(i));
         }
     }
 

@@ -20,5 +20,5 @@ let package = Package(
                 .headerSearchPath("include"),
                 .headerSearchPath("src/deps")])
     ],
-    cxxLanguageStandard: .cxx14
+    cxxLanguageStandard: .cxx17
 )

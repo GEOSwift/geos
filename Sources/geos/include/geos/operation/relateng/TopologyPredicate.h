@@ -18,6 +18,8 @@
 #include <geos/geom/Location.h>
 #include <geos/export.h>
 
+#include <ostream> // for operator<<
+#include <string>
 
 // Forward declarations
 namespace geos {
@@ -26,17 +28,14 @@ namespace geom {
 }
 }
 
-
-using geos::geom::Envelope;
-using geos::geom::Location;
-
-
 namespace geos {      // geos.
 namespace operation { // geos.operation
 namespace relateng {  // geos.operation.relateng
 
 
 class GEOS_DLL TopologyPredicate {
+    using Envelope = geos::geom::Envelope;
+    using Location = geos::geom::Location;
 
 public:
 

@@ -21,7 +21,7 @@
 #include <geos/operation/overlayng/OverlayNG.h>
 #include <geos/operation/overlayng/OverlayUtil.h>
 
-
+using namespace geos::geom;
 
 namespace geos {      // geos
 namespace operation { // geos.operation
@@ -108,8 +108,12 @@ OverlayPoints::getResult()
             break;
         }
     }
-    if (rsltList.empty())
-        return OverlayUtil::createEmptyResult(0, geometryFactory);
+    if (rsltList.empty()) {
+        uint8_t coordDim = OverlayUtil::resultCoordinateDimension(
+                                            geom0->getCoordinateDimension(), 
+                                            geom1->getCoordinateDimension());
+        return OverlayUtil::createEmptyResult(0, coordDim, geometryFactory);
+    }
 
     return geometryFactory->buildGeometry(std::move(rsltList));
 }

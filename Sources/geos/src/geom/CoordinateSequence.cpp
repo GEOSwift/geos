@@ -68,8 +68,13 @@ CoordinateSequence::CoordinateSequence(std::size_t sz, bool hasz, bool hasm, boo
 }
 
 CoordinateSequence::CoordinateSequence(std::size_t sz, std::size_t dim) :
+#ifdef GEOS_COORDSEQ_PADZ
     m_vect(sz * std::max(static_cast<std::uint8_t>(dim), static_cast<std::uint8_t>(3))),
     m_stride(std::max(static_cast<std::uint8_t>(dim), static_cast<std::uint8_t>(3))),
+#else
+    m_vect(sz * static_cast<std::uint8_t>(dim)),
+    m_stride(static_cast<std::uint8_t>(dim)),
+#endif
     m_hasdim(dim > 0),
     m_hasz(dim >= 3),
     m_hasm(dim == 4)
@@ -547,10 +552,18 @@ CoordinateSequence::setOrdinate(std::size_t index, std::size_t ordinateIndex, do
         getAt<CoordinateXY>(index).y = value;
         break;
         case CoordinateSequence::Z:
-        getAt<Coordinate>(index).z = value;
+        {
+            if (!hasZ()) {
+                throw util::IllegalArgumentException("Coordinate type is not XYZ or XYZM");
+            }
+            getAt<Coordinate>(index).z = value;
+        }
         break;
         case CoordinateSequence::M:
         {
+            if (!hasM()) {
+                throw util::IllegalArgumentException("Coordinate type is not XYM or XYZM.");
+            }
             if (getCoordinateType() == CoordinateType::XYZM) {
                 getAt<CoordinateXYZM>(index).m = value;
             } else {
@@ -575,9 +588,23 @@ CoordinateSequence::setPoints(const std::vector<Coordinate>& v)
     m_hasz = false;
     m_hasm = false;
 
-    m_vect.resize(3 * v.size());
+    m_vect.resize(m_stride * v.size());
     const double* cbuf = reinterpret_cast<const double*>(v.data());
     m_vect.assign(cbuf, cbuf + m_vect.size());
+}
+
+void
+CoordinateSequence::setPoints(const std::vector<CoordinateXY>& v)
+{
+    m_stride = 3;
+    m_hasdim = false;
+    m_hasz = false;
+    m_hasm = false;
+
+    m_vect.resize(m_stride * v.size());
+    for (std::size_t i = 0; i < v.size(); i++) {
+        setAt(v[i], i);
+    }
 }
 
 void

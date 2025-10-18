@@ -251,7 +251,10 @@ SimpleCurve::getPointN(std::size_t n) const
 {
     assert(getFactory());
     assert(points.get());
-    return std::unique_ptr<Point>(getFactory()->createPoint(points->getAt(n)));
+
+    return points->applyAt(n, [this](const auto& c) {
+        return getFactory()->createPoint(c);
+    });
 }
 
 std::unique_ptr<Point>

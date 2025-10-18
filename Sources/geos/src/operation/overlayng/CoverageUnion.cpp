@@ -33,7 +33,6 @@ namespace overlayng { // geos.operation.overlayng
 std::unique_ptr<Geometry>
 CoverageUnion::geomunion(const Geometry* coverage)
 {
-    double area_in = coverage->getArea();
     std::unique_ptr<Geometry> result;
 
     // a precision model is not needed since no noding is done
@@ -44,12 +43,20 @@ CoverageUnion::geomunion(const Geometry* coverage)
     }
     else {
         BoundaryChainNoder bcn;
-        result = OverlayNG::geomunion(coverage, nullptr, &bcn);
+        // https://github.com/libgeos/geos/pull/1279#discussion_r2256157484
+        // return a more descriptive exception error
+        try {
+            result = OverlayNG::geomunion(coverage, nullptr, &bcn);
+        }
+        catch (const geos::util::TopologyException& te) {
+            throw geos::util::TopologyException("CoverageUnion cannot process incorrectly noded inputs");
+        }
     }
 
-    double area_out = result->getArea();
+    double area_in = coverage->getArea();
 
-    if (std::abs((area_out - area_in)/area_in) > AREA_PCT_DIFF_TOL) {
+    if ( (area_in != 0.0) &&
+         (std::abs((result->getArea() - area_in)/area_in) > AREA_PCT_DIFF_TOL)) {
         throw geos::util::TopologyException("CoverageUnion cannot process overlapping inputs.");
     }
 

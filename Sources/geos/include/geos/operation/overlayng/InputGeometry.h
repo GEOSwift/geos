@@ -38,10 +38,12 @@ namespace overlayng { // geos.operation.overlayng
  *
  */
 
-using namespace geos::algorithm::locate;
-using namespace geos::geom;
-
 class GEOS_DLL InputGeometry {
+    using Geometry = geos::geom::Geometry;
+    using Envelope = geos::geom::Envelope;
+    using Coordinate = geos::geom::Coordinate;
+    using Location = geos::geom::Location;
+    using PointOnGeometryLocator = geos::algorithm::locate::PointOnGeometryLocator;
 
 private:
 
@@ -59,6 +61,7 @@ public:
 
     bool isSingle() const;
     int getDimension(uint8_t index) const;
+    uint8_t getCoordinateDimension(uint8_t index) const;
     const Geometry* getGeometry(uint8_t geomIndex) const;
     const Envelope* getEnvelope(uint8_t geomIndex) const;
     bool isEmpty(uint8_t geomIndex) const;

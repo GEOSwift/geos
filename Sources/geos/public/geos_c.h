@@ -61,22 +61,22 @@ extern "C" {
 #define GEOS_VERSION_MAJOR 3
 #endif
 #ifndef GEOS_VERSION_MINOR
-#define GEOS_VERSION_MINOR 13
+#define GEOS_VERSION_MINOR 14
 #endif
 #ifndef GEOS_VERSION_PATCH
 #define GEOS_VERSION_PATCH 0
 #endif
 #ifndef GEOS_VERSION
-#define GEOS_VERSION "3.13.0"
+#define GEOS_VERSION "3.14.0"
 #endif
 #ifndef GEOS_JTS_PORT
 #define GEOS_JTS_PORT "1.18.0"
 #endif
 
 #define GEOS_CAPI_VERSION_MAJOR 1
-#define GEOS_CAPI_VERSION_MINOR 19
-#define GEOS_CAPI_VERSION_PATCH 0
-#define GEOS_CAPI_VERSION "3.13.0-CAPI-1.19.0"
+#define GEOS_CAPI_VERSION_MINOR 20
+#define GEOS_CAPI_VERSION_PATCH 4
+#define GEOS_CAPI_VERSION "3.14.0-CAPI-1.20.4"
 
 #define GEOS_CAPI_FIRST_INTERFACE GEOS_CAPI_VERSION_MAJOR
 #define GEOS_CAPI_LAST_INTERFACE (GEOS_CAPI_VERSION_MAJOR+GEOS_CAPI_VERSION_MINOR)
@@ -169,11 +169,24 @@ typedef struct GEOSSTRtree_t GEOSSTRtree;
 typedef struct GEOSBufParams_t GEOSBufferParams;
 
 /**
+* Parameter object for coverage cleaning options.
+* \see GEOSCoverageCleanParams_create()
+* \see GEOSCoverageCleanParams_destroy()
+*/
+typedef struct GEOSCoverageCleanParams_t GEOSCoverageCleanParams;
+
+/**
 * Parameter object for validity enforcement.
 * \see GEOSMakeValidParams_create()
 * \see GEOSMakeValidParams_destroy()
 */
 typedef struct GEOSMakeValidParams_t GEOSMakeValidParams;
+
+/**
+* Object containing information about cluster of geometries.
+* \see GEOSClusterInfo_destroy()
+*/
+typedef struct GEOSClusterInfo_t GEOSClusterInfo;
 
 #endif
 
@@ -249,6 +262,21 @@ enum GEOSWKBFlavors {
 };
 
 /**
+* Overlap repair strategies.
+* \see GEOSCoverageCleanParams_setOverlapMergeStrategy
+*/
+enum GEOSOverlapMerge {
+    /** Merge strategy that chooses polygon with longest common border */
+    GEOS_MERGE_LONGEST_BORDER = 0,
+    /** Merge strategy that chooses polygon with maximum area */
+    GEOS_MERGE_MAX_AREA       = 1,
+    /** Merge strategy that chooses polygon with minimum area */
+    GEOS_MERGE_MIN_AREA       = 2,
+    /** Merge strategy that chooses polygon with smallest input index */
+    GEOS_MERGE_MIN_INDEX      = 3
+};
+
+/**
 * Callback function for use in spatial index search calls. Pass into
 * the query function and handle query results as the index
 * returns them.
@@ -284,7 +312,7 @@ typedef int (*GEOSDistanceCallback)(
 /**
 * Callback function for use in GEOSGeom_transformXY.
 * Allows custom function to be applied to x and y values for each coordinate
-* in a geometry.  Z values are unchanged by this function.
+* in a geometry.  Z and M values are unchanged by this function.
 * Extra data for the calculation can be passed via the userdata.
 *
 * \param x coordinate value to be updated
@@ -299,11 +327,30 @@ typedef int (*GEOSTransformXYCallback)(
     void* userdata);
 
 
-/* ========== Interruption ========== */
-
 /**
-* Callback function for use in interruption. The callback will be invoked _before_ checking for
-* interruption, so can be used to request it.
+* Callback function for use in GEOSGeom_transformXYZ.
+* Allows custom function to be applied to x, y and z values for each coordinate
+* in a geometry.  M values are unchanged by this function.
+* Extra data for the calculation can be passed via the userdata.
+*
+* \param x coordinate value to be updated
+* \param y coordinate value to be updated
+* \param z coordinate value to be updated
+* \param userdata extra data for the calculation
+*
+* \return 1 if calculation succeeded, 0 on failure
+*/
+typedef int (*GEOSTransformXYZCallback)(
+    double* x,
+    double* y,
+    double* z,
+    void* userdata);
+
+
+/* ========== Interruption ========== */
+/**
+* Callback function for use in interruption. The callback will be invoked at each
+* possible interruption point and can be used to request interruption.
 *
 * \see GEOS_interruptRegisterCallback
 * \see GEOS_interruptRequest
@@ -312,20 +359,58 @@ typedef int (*GEOSTransformXYCallback)(
 typedef void (GEOSInterruptCallback)(void);
 
 /**
-* Register a function to be called when processing is interrupted.
+* Callback function for use in interruption. The callback will be invoked at each
+* possible interruption point and can be used to request interruption by returning
+* a non-zero value.
+*
+* \see GEOSContext_setInterruptCallback_r
+* \since 3.14
+*/
+typedef int (GEOSContextInterruptCallback)(void*);
+
+/**
+* Register a function to be called when a possible interruption point is reached
+* on any thread. The function may be used to request interruption.
+*
 * \param cb Callback function to invoke
-* \return the previously configured callback
+* \return the previously registered callback, or NULL
 * \see GEOSInterruptCallback
+* \see GEOSContext_setInterruptCallback_r
 * \since 3.4
 */
 extern GEOSInterruptCallback GEOS_DLL *GEOS_interruptRegisterCallback(
     GEOSInterruptCallback* cb);
 
 /**
-* Request safe interruption of operations
+* Register a function to be called when a possible interruption point is reached
+* in code executed in the specified context. The function can interrupt the
+* thread if desired by returning True.
+*
+* \param extHandle the context returned by \ref GEOS_init_r.
+* \param cb Callback function to invoke
+* \param userData optional data to be pe provided as argument to callback
+* \return the previously registered callback, or NULL
+* \see GEOSContextInterruptCallback
+* \since 3.14
+*/
+extern GEOSContextInterruptCallback GEOS_DLL *GEOSContext_setInterruptCallback_r(
+        GEOSContextHandle_t extHandle,
+        GEOSContextInterruptCallback* cb,
+        void* userData);
+
+/**
+* Request safe interruption of operations. The next thread to check for an
+* interrupt will be interrupted. To request interruption of a specific thread,
+* instead call GEOS_interruptThread() from a callback executed by that thread.
 * \since 3.4
 */
 extern void GEOS_DLL GEOS_interruptRequest(void);
+
+/**
+* Interrupt the current thread.
+* \since 3.14
+*/
+extern void GEOS_DLL GEOS_interruptThread(void);
 
 /**
 * Cancel a pending interruption request
@@ -418,6 +503,13 @@ extern GEOSCoordSequence GEOS_DLL *GEOSCoordSeq_create_r(
     unsigned int size,
     unsigned int dims);
 
+/** \see GEOSCoordSeq_createWithDimensions */
+extern GEOSCoordSequence GEOS_DLL *GEOSCoordSeq_createWithDimensions_r(
+    GEOSContextHandle_t handle,
+    unsigned int size,
+    int hasZ,
+    int hasM);
+
 /** \see GEOSCoordSeq_copyFromBuffer */
 extern GEOSCoordSequence GEOS_DLL *GEOSCoordSeq_copyFromBuffer_r(
         GEOSContextHandle_t handle,
@@ -462,6 +554,16 @@ extern void GEOS_DLL GEOSCoordSeq_destroy_r(
     GEOSContextHandle_t handle,
     GEOSCoordSequence* s);
 
+/** \see GEOSCoordSeq_hasZ */
+extern char GEOS_DLL GEOSCoordSeq_hasZ_r(
+    GEOSContextHandle_t handle,
+    GEOSCoordSequence* s);
+
+/** \see GEOSCoordSeq_hasM */
+extern char GEOS_DLL GEOSCoordSeq_hasM_r(
+    GEOSContextHandle_t handle,
+    GEOSCoordSequence* s);
+
 /** \see GEOSCoordSeq_setX */
 extern int GEOS_DLL GEOSCoordSeq_setX_r(
     GEOSContextHandle_t handle,
@@ -476,6 +578,12 @@ extern int GEOS_DLL GEOSCoordSeq_setY_r(
 
 /** \see GEOSCoordSeq_setZ */
 extern int GEOS_DLL GEOSCoordSeq_setZ_r(
+    GEOSContextHandle_t handle,
+    GEOSCoordSequence* s, unsigned int idx,
+    double val);
+
+/** \see GEOSCoordSeq_setM */
+extern int GEOS_DLL GEOSCoordSeq_setM_r(
     GEOSContextHandle_t handle,
     GEOSCoordSequence* s, unsigned int idx,
     double val);
@@ -513,6 +621,12 @@ extern int GEOS_DLL GEOSCoordSeq_getY_r(
 
 /** \see GEOSCoordSeq_getZ */
 extern int GEOS_DLL GEOSCoordSeq_getZ_r(
+    GEOSContextHandle_t handle,
+    const GEOSCoordSequence* s,
+    unsigned int idx, double *val);
+
+/** \see GEOSCoordSeq_getM */
+extern int GEOS_DLL GEOSCoordSeq_getM_r(
     GEOSContextHandle_t handle,
     const GEOSCoordSequence* s,
     unsigned int idx, double *val);
@@ -824,6 +938,51 @@ GEOSCoverageSimplifyVW_r(
     double tolerance,
     int preserveBoundary);
 
+/** \see GEOSCoverageCleanParams_create */
+extern GEOSCoverageCleanParams GEOS_DLL *
+GEOSCoverageCleanParams_create_r(
+    GEOSContextHandle_t extHandle);
+
+/** \see GEOSCoverageCleanParams_destroy */
+extern void GEOS_DLL
+GEOSCoverageCleanParams_destroy_r(
+    GEOSContextHandle_t extHandle,
+    GEOSCoverageCleanParams* params);
+
+/** \see GEOSCoverageCleanParams_setSnappingDistance */
+extern int GEOS_DLL
+GEOSCoverageCleanParams_setSnappingDistance_r(
+    GEOSContextHandle_t extHandle,
+    GEOSCoverageCleanParams* params,
+    double snappingDistance);
+
+/** \see GEOSCoverageCleanParams_setGapMaximumWidth */
+extern int GEOS_DLL
+GEOSCoverageCleanParams_setGapMaximumWidth_r(
+    GEOSContextHandle_t extHandle,
+    GEOSCoverageCleanParams* params,
+    double gapMaximumWidth);
+
+/** \see GEOSCoverageCleanParams_setOverlapMergeStrategy */
+extern int GEOS_DLL
+GEOSCoverageCleanParams_setOverlapMergeStrategy_r(
+    GEOSContextHandle_t extHandle,
+    GEOSCoverageCleanParams* params,
+    int overlapMergeStrategy);
+
+/** \see GEOSCoverageCleanWithParams */
+extern GEOSGeometry GEOS_DLL *
+GEOSCoverageCleanWithParams_r(
+    GEOSContextHandle_t extHandle,
+    const GEOSGeometry* input,
+    const GEOSCoverageCleanParams* params);
+
+/** \see GEOSCoverageClean */
+extern GEOSGeometry GEOS_DLL *
+GEOSCoverageClean_r(
+    GEOSContextHandle_t extHandle,
+    const GEOSGeometry* input);
+
 /* ========= Topology Operations ========= */
 
 /** \see GEOSEnvelope */
@@ -1008,6 +1167,15 @@ extern GEOSGeometry GEOS_DLL *GEOSClipByRect_r(
     const GEOSGeometry* g,
     double xmin, double ymin,
     double xmax, double ymax);
+
+/** \see GEOSGridIntersectionFractions */
+extern int GEOS_DLL GEOSGridIntersectionFractions_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g,
+    double xmin, double ymin,
+    double xmax, double ymax,
+    unsigned nx, unsigned ny,
+    float* buf);
 
 /** \see GEOSPolygonize */
 extern GEOSGeometry GEOS_DLL *GEOSPolygonize_r(
@@ -1470,6 +1638,13 @@ extern char GEOS_DLL *GEOSisValidReason_r(
     GEOSContextHandle_t handle,
     const GEOSGeometry* g);
 
+/** \see GEOSisSimpleDetail */
+extern char GEOS_DLL GEOSisSimpleDetail_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g,
+    int findAllLocations,
+    GEOSGeometry** location);
+
 /** \see GEOSisValidDetail */
 extern char GEOS_DLL GEOSisValidDetail_r(
     GEOSContextHandle_t handle,
@@ -1821,6 +1996,57 @@ extern GEOSGeometry GEOS_DLL *GEOSGeom_transformXY_r(
     GEOSTransformXYCallback callback,
     void* userdata);
 
+/** \see GEOSGeom_transformXYZ */
+extern GEOSGeometry GEOS_DLL *GEOSGeom_transformXYZ_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g,
+    GEOSTransformXYZCallback callback,
+    void* userdata);
+
+/** \see GEOSClusterDBSCAN */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterDBSCAN_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g,
+    double eps,
+    unsigned minPoints);
+
+/** \see GEOSClusterGeometryDistance */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterGeometryDistance_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g,
+    double d);
+
+/** \see GEOSClusterGeometryIntersects */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterGeometryIntersects_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g);
+
+/** \see GEOSClusterEnvelopeDistance */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterEnvelopeDistance_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g,
+    double d);
+
+/** \see GEOSClusterEnvelopeIntersects */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterEnvelopeIntersects_r(
+    GEOSContextHandle_t handle,
+    const GEOSGeometry* g);
+
+/** \see GEOSClusterInfo_getNumClusters */
+extern size_t GEOS_DLL GEOSClusterInfo_getNumClusters_r(GEOSContextHandle_t, const GEOSClusterInfo* clusters);
+
+/** \see GEOSClusterInfo_getClusterSize */
+extern size_t GEOS_DLL GEOSClusterInfo_getClusterSize_r(GEOSContextHandle_t, const GEOSClusterInfo* clusters, size_t i);
+
+/** \see GEOSClusterInfo_getClustersForInputs */
+extern size_t GEOS_DLL* GEOSClusterInfo_getClustersForInputs_r(GEOSContextHandle_t, const GEOSClusterInfo* clusters);
+
+/** \see GEOSClusterInfo_getInputsForClusterN */
+extern const size_t GEOS_DLL* GEOSClusterInfo_getInputsForClusterN_r(GEOSContextHandle_t, const GEOSClusterInfo* clusters, size_t i);
+
+/** \see GEOSClusterInfo_destroy */
+extern void GEOS_DLL GEOSClusterInfo_destroy_r(GEOSContextHandle_t, GEOSClusterInfo* info);
+
 /* ========= Algorithms ========= */
 
 /** \see GEOSOrientationIndex */
@@ -1900,6 +2126,7 @@ extern void GEOS_DLL GEOSWKTReader_setFixStructure_r(
     GEOSContextHandle_t handle,
     GEOSWKTReader *reader,
     char doFix);
+
 
 /* ========== WKT Writer ========== */
 
@@ -2094,6 +2321,17 @@ extern char GEOS_DLL *GEOSGeoJSONWriter_writeGeometry_r(
     const GEOSGeometry* g,
     int indent);
 
+/** \see GEOSGeoJSONWriter_setOutputDimension */
+extern void GEOS_DLL GEOSGeoJSONWriter_setOutputDimension_r(
+    GEOSContextHandle_t handle,
+    GEOSGeoJSONWriter *writer,
+    int dim);
+
+/** \see GEOSGeoJSONWriter_getOutputDimension */
+extern int  GEOS_DLL GEOSGeoJSONWriter_getOutputDimension_r(
+    GEOSContextHandle_t handle,
+    GEOSGeoJSONWriter *writer);
+
 /** \see GEOSFree */
 extern void GEOS_DLL GEOSFree_r(
     GEOSContextHandle_t handle,
@@ -2175,6 +2413,16 @@ extern void GEOS_DLL GEOSFree(void *buffer);
 extern GEOSCoordSequence GEOS_DLL *GEOSCoordSeq_create(unsigned int size, unsigned int dims);
 
 /**
+* Create a coordinate sequence.
+* \param size number of coordinates in the sequence
+* \param hasZ whether the sequence should store Z values
+* \param hasM whether the sequence should store M values
+* \return the sequence or NULL on exception
+* \since 3.14
+*/
+extern GEOSCoordSequence GEOS_DLL *GEOSCoordSeq_createWithDimensions(unsigned int size, int hasZ, int hasM);
+
+/**
 * Create a coordinate sequence by copying from an interleaved buffer of doubles (e.g., XYXY or XYZXYZ)
 * \param buf pointer to buffer
 * \param size number of coordinates in the sequence
@@ -2240,6 +2488,24 @@ extern GEOSCoordSequence GEOS_DLL *GEOSCoordSeq_clone(const GEOSCoordSequence* s
 extern void GEOS_DLL GEOSCoordSeq_destroy(GEOSCoordSequence* s);
 
 /**
+* Tests whether the input coordinate sequence has Z coordinates.
+* \param s the coordinate sequence to test
+* \return 1 on true, 0 on false, 2 on exception
+*
+* \since 3.14
+*/
+extern char GEOS_DLL GEOSCoordSeq_hasZ(GEOSCoordSequence* s);
+
+/**
+* Tests whether the input coordinate sequence has M coordinates.
+* \param s the coordinate sequence to test
+* \return 1 on true, 0 on false, 2 on exception
+*
+* \since 3.14
+*/
+extern char GEOS_DLL GEOSCoordSeq_hasM(GEOSCoordSequence* s);
+
+/**
 * Set X ordinate values in a coordinate sequence.
 * \param s the coordinate sequence
 * \param idx the index of the coordinate to alter, zero based
@@ -2269,6 +2535,18 @@ extern int GEOS_DLL GEOSCoordSeq_setY(GEOSCoordSequence* s,
 */
 extern int GEOS_DLL GEOSCoordSeq_setZ(GEOSCoordSequence* s,
     unsigned int idx, double val);
+
+/**
+* Set M ordinate values in a coordinate sequence.
+* \param s the coordinate sequence
+* \param idx the index of the coordinate to alter, zero based
+* \param val the value to set the ordinate to
+* \return 0 on exception
+* \since 3.14
+*/
+extern int GEOS_DLL GEOSCoordSeq_setM(GEOSCoordSequence* s,
+    unsigned int idx, double val);
+
 /**
 * Set X and Y ordinate values in a coordinate sequence simultaneously.
 * \param s the coordinate sequence
@@ -2327,6 +2605,7 @@ extern int GEOS_DLL GEOSCoordSeq_getX(const GEOSCoordSequence* s,
 */
 extern int GEOS_DLL GEOSCoordSeq_getY(const GEOSCoordSequence* s,
     unsigned int idx, double *val);
+
 /**
 * Read Z ordinate values from a coordinate sequence.
 * \param s the coordinate sequence
@@ -2337,6 +2616,18 @@ extern int GEOS_DLL GEOSCoordSeq_getY(const GEOSCoordSequence* s,
 */
 extern int GEOS_DLL GEOSCoordSeq_getZ(const GEOSCoordSequence* s,
     unsigned int idx, double *val);
+
+/**
+* Read M ordinate values from a coordinate sequence.
+* \param s the coordinate sequence
+* \param idx the index of the coordinate to alter, zero based
+* \param val pointer where ordinate value will be placed
+* \return 0 on exception
+* \since 3.14
+*/
+extern int GEOS_DLL GEOSCoordSeq_getM(const GEOSCoordSequence* s,
+    unsigned int idx, double *val);
+
 /**
 * Read X and Y ordinate values from a coordinate sequence.
 * \param s the coordinate sequence
@@ -3084,6 +3375,25 @@ and geometric quality.
 extern char GEOS_DLL GEOSisSimple(const GEOSGeometry* g);
 
 /**
+* In one step, calculate and return whether a geometry is simple
+* and one more more points at which the geometry self-intersects
+* at interior points.
+* Caller has the responsibility to destroy 'location' with 
+* GEOSGeom_destroy()
+*
+* \param g The geometry to test
+* \param findAllLocations Whether to return all self-intersection locations, or just one
+* \param locations A pointer in which the location GEOSGeometry will be placed
+* \return 1 when simple, 0 when non-simple, 2 on exception
+*
+* \since 3.14
+*/
+extern char GEOS_DLL GEOSisSimpleDetail(
+    const GEOSGeometry* g,
+    int findAllLocations,
+    GEOSGeometry** locations);
+
+/**
 * Check the validity of the provided geometry.
 * - All points are valid.
 * - All non-zero-length linestrings are valid.
@@ -3712,6 +4022,29 @@ extern GEOSGeometry GEOS_DLL *GEOSClipByRect(
     double xmax, double ymax);
 
 /**
+* Determine the fraction of each cell in a rectangular grid
+* that is covered by a polygon.
+* \param g The input geometry
+* \param xmin Left bound of grd
+* \param ymin Lower bound of grid
+* \param xmax Right bound of grid
+* \param ymax Upper bound of grid
+* \param nx number of columns in grid
+* \param ny number of rows in grid
+* \param buf a buffer of size nx*ny to which the grid cell
+*        coverage fractions will be written in row-major order
+* \return 1 if the operation was successful, 0 on exception
+*
+* \since 3.14.0
+*/
+extern int GEOS_DLL GEOSGridIntersectionFractions(
+    const GEOSGeometry* g,
+    double xmin, double ymin,
+    double xmax, double ymax,
+    unsigned nx, unsigned ny,
+    float* buf);
+
+/**
 * Find paths shared between the two given lineal geometries.
 *
 * Returns a GeometryCollection having two elements:
@@ -3732,6 +4065,123 @@ extern GEOSGeometry GEOS_DLL *GEOSClipByRect(
 extern GEOSGeometry GEOS_DLL *GEOSSharedPaths(
     const GEOSGeometry* g1,
     const GEOSGeometry* g2);
+///@}
+
+/* ========== Clustering functions ========== */
+/** @name Clustering
+* Functions for clustering geometries
+*/
+
+
+
+
+static const size_t GEOS_CLUSTER_NONE = (size_t) -1;
+
+///@{
+/**
+ * @brief GEOSClusterDBSCAN
+ *
+ * Cluster geometries using the DBSCAN algorithm
+ *
+ * @param g a collection of geometries to be clustered
+ * @param eps distance parameter for clustering
+ * @param minPoints density parameter for clustering
+ * @return cluster information object
+ */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterDBSCAN(const GEOSGeometry* g, double eps, unsigned minPoints);
+
+/**
+ * @brief GEOSClusterGeometryDistance
+ *
+ * Cluster geometries according to a distance threshold
+ *
+ * @param g a collection of geometries to be clustered
+ * @param d minimum distance between geometries in the same cluster
+ * @return cluster information object
+ */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterGeometryDistance(const GEOSGeometry* g, double d);
+
+/**
+ * @brief GEOSClusterGeometryIntersects
+ *
+ * Cluster geometries that intersect
+ *
+ * @param g a collection of geometries to be clustered
+ * @return cluster information object
+ */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterGeometryIntersects(const GEOSGeometry* g);
+
+/**
+ * @brief GEOSClusterEnvelopeDistance
+ *
+ * Cluster geometries according to an envelope distance threshold
+ *
+ * @param g a collection of geometries to be clustered
+ * @param d minimum envelope distance between geometries in the same cluster
+ * @return cluster information object
+ */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterEnvelopeDistance(const GEOSGeometry* g, double d);
+
+/**
+ * @brief GEOSClusterEnvelopeIntersects
+ *
+ * Cluster geometries whose envelopes intersect
+ *
+ * @param g
+ * @return cluster information object
+ */
+extern GEOSClusterInfo GEOS_DLL* GEOSClusterEnvelopeIntersects(const GEOSGeometry* g);
+
+/**
+ * @brief GEOSClusterInfo_getNumClusters
+ *
+ * Get the number of clusters identified by a clustering operation
+ *
+ * @param clusters cluster information object
+ * @return number of clusters identified
+ */
+extern size_t GEOS_DLL GEOSClusterInfo_getNumClusters(const GEOSClusterInfo* clusters);
+
+/**
+ * @brief GEOSClusterInfo_getSize
+ *
+ * Get the number of elements in the ith cluster (0-indexed)
+ *
+ * @param clusters cluster information object
+ * @param i cluster for which a size will be returned
+ * @return number of elements in the cluster
+ */
+extern size_t GEOS_DLL GEOSClusterInfo_getClusterSize(const GEOSClusterInfo* clusters, size_t i );
+
+/**
+ * @brief GEOSClusterInfo_getClustersForInputs
+ *
+ * Get the cluster index associated with each input to the clustering operation.
+ * Inputs that do are not associated with any cluster will have an index of GEOS_CLUSTER_NONE.
+ *
+ * @param clusters cluster information object
+ * @return an array of cluster indices, to be freed by the caller.
+ */
+extern size_t GEOS_DLL* GEOSClusterInfo_getClustersForInputs(const GEOSClusterInfo* clusters);
+
+/**
+ * @brief GEOSClusterInfo_getInputsForClusterN
+ * @param clusters cluster information object
+ * @param i index of the cluster for which indices should be retrieved
+ * @return a pointer to an array of cluster indices. Size of the array is indicated by
+ *         GEOSClusterInfo_getNumElements. The array is owner by the cluster information
+ *         object and should not be modified or freed by the caller.
+ */
+extern const size_t GEOS_DLL* GEOSClusterInfo_getInputsForClusterN(const GEOSClusterInfo* clusters, size_t i);
+
+/**
+ * @brief GEOSClusterInfo_destroy
+ *
+ * Destroy a cluster information object.
+ *
+ * @param clusters cluster information object
+ */
+extern void GEOS_DLL GEOSClusterInfo_destroy(GEOSClusterInfo* clusters);
 
 ///@}
 
@@ -3981,7 +4431,138 @@ extern GEOSGeometry GEOS_DLL * GEOSCoverageSimplifyVW(
     double tolerance,
     int preserveBoundary);
 
+/**
+* Create a default GEOSCoverageCleanParams object for controlling
+* the way invalid polygon interactions are repaird by \ref GEOSCoverageCleanWithParams.
+* \return A newly allocated GEOSCoverageCleanParams. NULL on exception.
+* Caller is responsible for freeing with GEOSCoverageCleanParams_destroy().
+*
+* \since 3.14
+*/
+extern GEOSCoverageCleanParams GEOS_DLL *
+GEOSCoverageCleanParams_create();
+
+/**
+* Destroy a GEOSCoverageCleanParams and free all associated memory.
+* \param params The object to destroy.
+*
+* \since 3.14
+*/
+extern void GEOS_DLL
+GEOSCoverageCleanParams_destroy(
+    GEOSCoverageCleanParams* params);
+
+/**
+* Snapping to nearby vertices and line segment snapping
+* is used to improve noding robustness
+* and eliminate small errors in an efficient way,
+* By default this uses a very small snapping distance
+* based on the extent of the input data.
+* The snapping distance may be specified explicitly.
+* This can reduce the number of overlaps and gaps that need to be merged,
+* and reduce the risk of spikes formed by merging gaps.
+* However, a large snapping distance may introduce undesirable
+* data alteration.
+*
+* A distance of zero prevents snapping from being used.
+* \see geos::coverage::CoverageCleaner::setSnappingDistance
+* \param params The GEOSCoverageCleanParams to operate on
+* \param snappingDistance Set to 0.0 for no snapping.
+* \return 0 on exception, 1 on success.
+*
+* \since 3.14
+*/
+extern int GEOS_DLL
+GEOSCoverageCleanParams_setSnappingDistance(
+    GEOSCoverageCleanParams *params,
+    double snappingDistance);
+
+/**
+* Gaps which are wider than a given distance are merged with an adjacent polygon.
+* Polygon width is determined as twice the radius of the MaximumInscribedCircle
+* of the gap polygon.
+* Gaps are merged with the adjacent polygon with longest shared border.
+* Empty holes in input polygons are treated as gaps, and may be filled in.
+* Gaps which are not fully enclosed ("inlets") are not removed.
+*
+* The width of a gap is twice the radius of the Maximum Inscribed Circle in the gap polygon,
+* A width of zero prevents gaps from being merged.
+*
+* \see geos::coverage::CoverageCleaner::setGapMaximumWidth
+* \param params The GEOSCoverageCleanParams to operate on
+* \param gapMaximumWidth Set to 0.0 for no snapping.
+* \return 0 on exception, 1 on success.
+*
+* \since 3.14
+*/
+extern int GEOS_DLL
+GEOSCoverageCleanParams_setGapMaximumWidth(
+    GEOSCoverageCleanParams* params,
+    double gapMaximumWidth);
+
+/*
+* Sets the overlap merge strategy to use, using one from \ref GEOSOverlapMerge.
+* Overlaps are merged with an adjacent polygon chosen according to a specified merge strategy.
+* The supported strategies are:
+*
+*   * **Longest Border**: (default) merge with the polygon with longest shared border (GEOS_MERGE_LONGEST_BORDER.)
+*   * **Maximum/Minimum Area**: merge with the polygon with largest or smallest area (GEOS_MERGE_MAX_AREA, GEOS_MERGE_MIN_AREA.)
+*   * **Minimum Index**: merge with the polygon with the lowest index in the input array (GEOS_MERGE_MIN_INDEX.)
+*
+* This allows sorting the input according to some criteria to provide a priority
+* for merging gaps.
+*
+* The default is GEOS_MERGE_LONGEST_BORDER.
+*
+* \see geos::coverage::CoverageCleaner::setGapMaximumWidth
+* \param params The GEOSCoverageCleanParams to operate on
+* \param overlapMergeStrategy One of \ref GEOSOverlapMerge strategies
+* \return 0 on exception, 1 on success.
+*
+* \since 3.14
+*/
+extern int GEOS_DLL
+GEOSCoverageCleanParams_setOverlapMergeStrategy(
+    GEOSCoverageCleanParams* params,
+    int overlapMergeStrategy);
+
+/**
+* Operates on a list of polygonal geometry with "exactly matching"
+* edge geometry, to fix cases where the geometry does not in fact
+* exactly match.
+*
+* The input is a collection of polygons, and the output is a collection
+* with the same number of cleaned polygons, in the same order as
+* the input. Polygons that have collapsed during cleaning will be returned
+* as empties.
+*
+* \param input The dirty polygonal coverage,
+*        stored in a geometry collection. All members must be POLYGON
+*        or MULTIPOLYGON.
+* \param params A GEOSCoverageCleanParams to control the options
+*        used in cleaning the coverage.
+* \return A collection containing the cleaned geometries, or null
+*         on error. Where cleaning has resulted in polygon collapse,
+*         an EMPTY geometry will be returned as part of the collection.
+*
+* \since 3.14
+*/
+extern GEOSGeometry GEOS_DLL *
+GEOSCoverageCleanWithParams(
+    const GEOSGeometry* input,
+    const GEOSCoverageCleanParams* params
+);
+
+/** \see GEOSCoverageCleanWithParams */
+extern GEOSGeometry GEOS_DLL *
+GEOSCoverageClean(
+    const GEOSGeometry* input);
+
+
+
+
 ///@}
+
 
 /* ========== Construction Operations ========== */
 /** @name Geometric Constructions
@@ -4696,7 +5277,7 @@ extern int GEOS_DLL GEOSHilbertCode(
 /**
 * Apply XY coordinate transform callback to all coordinates in a copy of
 * input geometry.  If the callback returns an error, returned geometry will be
-* NULL.  Z values, if present, are not modified by this function.
+* NULL.  Z and M values, if present, are not modified by this function.
 * \param[in] g Input geometry
 * \param[in] callback a function to be executed for each coordinate in the
                 geometry.  The callback takes 3 parameters: x and y coordinate
@@ -4710,6 +5291,25 @@ extern int GEOS_DLL GEOSHilbertCode(
 extern GEOSGeometry GEOS_DLL *GEOSGeom_transformXY(
     const GEOSGeometry* g,
     GEOSTransformXYCallback callback,
+    void* userdata);
+
+/**
+* Apply XYZ coordinate transform callback to all coordinates in a copy of
+* input geometry.  If the callback returns an error, returned geometry will be
+* NULL.  M values, if present, are not modified by this function.
+* \param[in] g Input geometry
+* \param[in] callback a function to be executed for each coordinate in the
+                geometry.  The callback takes 4 parameters: x, y and z coordinate
+                values to be updated and a void userdata pointer.
+* \param userdata an optional pointer to pe passed to 'callback' as an argument
+* \return a copy of the input geometry with transformed coordinates.
+* Caller must free with GEOSGeom_destroy().
+*
+* \since 3.13
+*/
+extern GEOSGeometry GEOS_DLL *GEOSGeom_transformXYZ(
+    const GEOSGeometry* g,
+    GEOSTransformXYZCallback callback,
     void* userdata);
 
 /**
@@ -4781,7 +5381,7 @@ extern GEOSGeometry GEOS_DLL *GEOSGeom_setPrecision(
 ///@{
 
 /**
-* True if no point of either geometry touchess or is within the other.
+* Tests if two geometries have no point in common.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4791,8 +5391,8 @@ extern GEOSGeometry GEOS_DLL *GEOSGeom_setPrecision(
 extern char GEOS_DLL GEOSDisjoint(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometries share boundaries at one or more points, but do
-* not have interior overlaps.
+* Tests if two geometries share boundaries at one or more points, but do
+* not have interior points in common.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4802,7 +5402,7 @@ extern char GEOS_DLL GEOSDisjoint(const GEOSGeometry* g1, const GEOSGeometry* g2
 extern char GEOS_DLL GEOSTouches(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometries are not disjoint.
+* Tests if two geometries intersect.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4812,7 +5412,7 @@ extern char GEOS_DLL GEOSTouches(const GEOSGeometry* g1, const GEOSGeometry* g2)
 extern char GEOS_DLL GEOSIntersects(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometries interiors interact but their boundaries do not.
+* Tests if two geometries interiors intersect but their boundaries do not.
 * Most useful for finding line crosses cases.
 * \param g1 Input geometry
 * \param g2 Input geometry
@@ -4823,8 +5423,8 @@ extern char GEOS_DLL GEOSIntersects(const GEOSGeometry* g1, const GEOSGeometry* 
 extern char GEOS_DLL GEOSCrosses(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometry g1 is completely within g2, and not
-* touching the boundary of g2.
+* Tests if geometry g1 is completely within g2, 
+* but not wholly contained in the boundary of g2.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4834,7 +5434,8 @@ extern char GEOS_DLL GEOSCrosses(const GEOSGeometry* g1, const GEOSGeometry* g2)
 extern char GEOS_DLL GEOSWithin(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometry g2 is completely within g1.
+* Tests if geometry g2 is completely within g1,
+* but not wholly contained in the boundary of g1.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4844,7 +5445,7 @@ extern char GEOS_DLL GEOSWithin(const GEOSGeometry* g1, const GEOSGeometry* g2);
 extern char GEOS_DLL GEOSContains(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometries share interiors but are neither
+* Tests if two geometries share interiors but are neither
 * within nor contained.
 * \param g1 Input geometry
 * \param g2 Input geometry
@@ -4855,7 +5456,7 @@ extern char GEOS_DLL GEOSContains(const GEOSGeometry* g1, const GEOSGeometry* g2
 extern char GEOS_DLL GEOSOverlaps(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometries cover the same space on the plane.
+* Tests if two geometries contain the same set of points in the plane.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4865,8 +5466,8 @@ extern char GEOS_DLL GEOSOverlaps(const GEOSGeometry* g1, const GEOSGeometry* g2
 extern char GEOS_DLL GEOSEquals(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometry g1 is completely within g2, including possibly
-* touching the boundary of g2.
+* Tests if geometry g1 covers g2, which is the case
+* if every point of g2 lies in g1.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4877,8 +5478,8 @@ extern char GEOS_DLL GEOSEquals(const GEOSGeometry* g1, const GEOSGeometry* g2);
 extern char GEOS_DLL GEOSCovers(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* True if geometry g2 is completely within g1, including possibly
-* touching the boundary of g1.
+* Tests if geometry g1 is covered by g2,
+* which is the case if every point of g1 lies in g2.
 * \param g1 Input geometry
 * \param g2 Input geometry
 * \returns 1 on true, 0 on false, 2 on exception
@@ -4889,7 +5490,7 @@ extern char GEOS_DLL GEOSCovers(const GEOSGeometry* g1, const GEOSGeometry* g2);
 extern char GEOS_DLL GEOSCoveredBy(const GEOSGeometry* g1, const GEOSGeometry* g2);
 
 /**
-* Determine pointwise equivalence of two geometries, by
+* Determine pointwise equality of two geometries, by
 * checking that they have identical structure
 * and that each vertex of g2 is
 * within the distance tolerance of the corresponding vertex in g1.
@@ -4911,7 +5512,7 @@ extern char GEOS_DLL GEOSEqualsExact(
     double tolerance);
 
 /**
- * Determine pointwise equivalence of two geometries by checking
+ * Determine pointwise equality of two geometries by checking
  * that the structure, ordering, and values of all vertices are
  * identical in all dimensions. NaN values are considered to be
  * equal to other NaN values.
@@ -4928,10 +5529,9 @@ extern char GEOS_DLL GEOSEqualsIdentical(
 
 /**
 * Calculate the [DE9IM](https://en.wikipedia.org/wiki/DE-9IM) string for a geometry pair
-* and compare against a DE9IM pattern to check for
-* consistency. 
-* If the result matches the pattern return true.
-* The pattern is a 9-character string 
+* and compare against a DE9IM pattern.
+* Returns true if the computed matrix matches the pattern.
+* The pattern is a 9-character string
 * containing symbols in the set "012TF*".
 * "012F" match the corresponding dimension symbol;
 * "T" matches any non-empty dimension; "*" matches any dimension.
@@ -5926,6 +6526,27 @@ extern char GEOS_DLL *GEOSGeoJSONWriter_writeGeometry(
     GEOSGeoJSONWriter* writer,
     const GEOSGeometry* g,
     int indent);
+
+/**
+* Set the output dimensionality of the writer. Either
+* 2 or 3 dimensions.
+* \param writer A \ref GEOSGeoJSONWriter.
+* \param dim The dimensionality desired.
+*
+* \since 3.14
+*/
+extern void GEOS_DLL GEOSGeoJSONWriter_setOutputDimension(
+    GEOSGeoJSONWriter *writer,
+    int dim);
+
+/**
+* Reads the current output dimension from a \ref GEOSGeoJSONWriter.
+* \param writer A \ref GEOSGeoJSONWriter.
+* \return The current dimension.
+*
+* \since 3.14
+*/
+extern int  GEOS_DLL GEOSGeoJSONWriter_getOutputDimension(GEOSGeoJSONWriter *writer);
 
 ///@}
 

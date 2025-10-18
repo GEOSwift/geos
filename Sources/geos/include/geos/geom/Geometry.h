@@ -63,7 +63,6 @@ class Point;
 class IntersectionMatrix;
 }
 namespace io { // geos.io
-class Unload;
 } // namespace geos.io
 }
 
@@ -270,8 +269,7 @@ public:
      *
      * @return the ID of the coordinate space in which the Geometry is defined.
      */
-    virtual int
-    getSRID() const
+    int getSRID() const
     {
         return SRID;
     }
@@ -346,7 +344,7 @@ public:
      *
      * @see IsValidOp
      */
-    virtual bool isValid() const;
+    bool isValid() const;
 
     /// Returns whether or not the set of points in this Geometry is empty.
     virtual bool isEmpty() const = 0; //Abstract
@@ -540,7 +538,7 @@ public:
      * Returns true if the DE-9IM intersection matrix for the two
      * Geometrys is T*F**FFF*.
      */
-    virtual bool equals(const Geometry* g) const;
+    bool equals(const Geometry* g) const;
 
     /** \brief
      * Returns <code>true</code> if this geometry covers the
@@ -720,7 +718,7 @@ public:
      *   and dissolving the linework.
      * - Unioning a set of [Polygons](@ref Polygon) will always
      *   return a polygonal geometry (unlike Geometry::Union(const Geometry* other) const),
-     *   which may return geometrys of lower dimension if a topology collapse
+     *   which may return geometries of lower dimension if a topology collapse
      *   occurred.
      *
      * @return the union geometry
@@ -819,7 +817,7 @@ public:
     virtual void normalize() = 0; //Abstract
 
     /// Comparator for sorting geometry
-    virtual int compareTo(const Geometry* geom) const;
+    int compareTo(const Geometry* geom) const;
 
     /// Returns the area of this Geometry.
     virtual double getArea() const;
@@ -830,7 +828,7 @@ public:
     /** Returns the minimum distance between this Geometry and the Geometry g
      *
      * @param g the Geometry to calculate distance to
-     * @return the distance in cartesian units
+     * @return the distance in Cartesian units
      */
     virtual double distance(const Geometry* g) const;
 
@@ -883,7 +881,7 @@ public:
      * Notifies this Geometry that its Coordinates have been changed
      * by an external party (using a CoordinateFilter, for example).
      */
-    virtual void geometryChanged();
+    void geometryChanged();
 
     /**
      * \brief
@@ -1048,4 +1046,3 @@ struct GeomPtrPair {
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-

@@ -15,17 +15,8 @@
 #pragma once
 
 #include <geos/export.h>
+#include <geos/geom/Coordinate.h>
 #include <iostream>
-
-
-// Forward declarations
-namespace geos {
-namespace geom {
-class Coordinate;
-}
-}
-
-using geos::geom::Coordinate;
 
 namespace geos {        // geos.
 namespace triangulate { // geos.triangulate
@@ -42,6 +33,7 @@ namespace tri {         // geos.triangulate.tri
  * @author mdavis
  */
 class GEOS_DLL TriEdge {
+    using Coordinate = geos::geom::Coordinate;
 
 private:
 
