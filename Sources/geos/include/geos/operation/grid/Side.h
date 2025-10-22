@@ -3,7 +3,7 @@
  * GEOS - Geometry Engine Open Source
  * http://geos.osgeo.org
  *
- * Copyright (C) 2001-2002 Vivid Solutions Inc.
+ * Copyright (C) 2018-2025 ISciences, LLC
  *
  * This is free software; you can redistribute and/or modify it under
  * the terms of the GNU Lesser General Public Licence as published
@@ -14,20 +14,20 @@
 
 #pragma once
 
-#include <geos/export.h>
+#include <iostream>
 
-//xie add for realse static memory 2003,10,06
-namespace geos {
-namespace io {
+namespace geos::operation::grid {
 
-class GEOS_DLL Unload {
-private:
-    Unload(void) {}
-    ~Unload(void) {}
-public:
-    static void Release();
+enum class Side
+{
+    NONE,
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM
 };
 
-}
-}
+std::ostream&
+operator<<(std::ostream& os, const Side& s);
 
+}

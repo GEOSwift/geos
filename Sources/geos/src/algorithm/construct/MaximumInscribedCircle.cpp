@@ -13,17 +13,19 @@
  **********************************************************************
  *
  * Last port: algorithm/construct/MaximumInscribedCircle.java
- * https://github.com/locationtech/jts/commit/98274a7ea9b40651e9de6323dc10fb2cac17a245
+ * https://github.com/locationtech/jts/commit/f0b9a808bdf8a973de435f737e37b7a221e231cb
  *
  **********************************************************************/
 
 #include <geos/algorithm/construct/MaximumInscribedCircle.h>
+#include <geos/algorithm/construct/ExactMaxInscribedCircle.h>
 #include <geos/geom/Coordinate.h>
 #include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/Envelope.h>
 #include <geos/geom/Geometry.h>
 #include <geos/geom/GeometryFactory.h>
 #include <geos/geom/LineString.h>
+#include <geos/geom/Point.h>
 #include <geos/geom/Polygon.h>
 #include <geos/geom/MultiPolygon.h>
 #include <geos/algorithm/locate/IndexedPointInAreaLocator.h>
@@ -53,11 +55,11 @@ MaximumInscribedCircle::MaximumInscribedCircle(const Geometry* polygonal, double
 {
     if (!(typeid(*polygonal) == typeid(Polygon) ||
           typeid(*polygonal) == typeid(MultiPolygon))) {
-        throw util::IllegalArgumentException("Input geometry must be a Polygon or MultiPolygon");
+        throw util::IllegalArgumentException("Input must be a Polygon or MultiPolygon");
     }
 
     if (polygonal->isEmpty()) {
-        throw util::IllegalArgumentException("Empty input geometry is not supported");
+        throw util::IllegalArgumentException("Empty input is not supported");
     }
 }
 
@@ -76,6 +78,14 @@ MaximumInscribedCircle::getRadiusLine(const Geometry* polygonal, double toleranc
 {
     MaximumInscribedCircle mic(polygonal, tolerance);
     return mic.getRadiusLine();
+}
+
+/* public static */
+bool
+MaximumInscribedCircle::isRadiusWithin(const Geometry* polygonal, double maxRadius)
+{
+    MaximumInscribedCircle mic(polygonal, -1);
+    return mic.isRadiusWithin(maxRadius);
 }
 
 /* public static */
@@ -142,42 +152,111 @@ MaximumInscribedCircle::createInitialGrid(const Envelope* env, Cell::CellQueue& 
 
 /* private */
 double
-MaximumInscribedCircle::distanceToBoundary(const Coordinate& c)
+MaximumInscribedCircle::distanceToBoundary(double x, double y)
 {
-    std::unique_ptr<Point> pt(factory->createPoint(c));
-    double dist = indexedDistance.distance(pt.get());
-    // double dist = inputGeomBoundary->distance(pt.get());
-    bool isOutside = (Location::EXTERIOR == ptLocator.locate(&c));
-    if (isOutside) return -dist;
-    return dist;
+    Coordinate coord(x, y);
+    std::unique_ptr<Point> pt(factory->createPoint(coord));
+    return distanceToBoundary(*pt.get());
 }
 
 /* private */
 double
-MaximumInscribedCircle::distanceToBoundary(double x, double y)
+MaximumInscribedCircle::distanceToBoundary(const Point& pt)
 {
-    Coordinate coord(x, y);
-    return distanceToBoundary(coord);
+    double dist = indexedDistance.distance(&pt);
+    // double dist = inputGeomBoundary->distance(pt.get());
+    bool isOutside = (Location::EXTERIOR == ptLocator.locate(pt.getCoordinate()));
+    if (isOutside) return -dist;
+    return dist;
 }
 
 /* private */
 MaximumInscribedCircle::Cell
 MaximumInscribedCircle::createInteriorPointCell(const Geometry* geom)
 {
-    Coordinate c;
     std::unique_ptr<Point> p = geom->getInteriorPoint();
-    Cell cell(p->getX(), p->getY(), 0, distanceToBoundary(c));
+    Cell cell(p->getX(), p->getY(), 0, distanceToBoundary(*p.get()));
     return cell;
 }
+
+
+/* public */
+bool
+MaximumInscribedCircle::isRadiusWithin(double maxRadius)
+{
+    if (maxRadius < 0) {
+        throw util::IllegalArgumentException("Radius length must be non-negative");
+    }
+    //-- handle 0 corner case, to provide maximum domain
+    if (maxRadius == 0) {
+        return false;
+    }
+    maximumRadius = maxRadius;
+
+    /**
+     * Check if envelope dimension is smaller than diameter
+     */
+    const Envelope* env = inputGeom->getEnvelopeInternal();
+    double maxDiam = 2 * maximumRadius;
+    if (env->getWidth() < maxDiam || env->getHeight() < maxDiam) {
+        return true;
+    }
+
+    tolerance = maxRadius * MAX_RADIUS_FRACTION;
+    compute();
+    double radius = centerPt.distance(radiusPt);
+    return radius <= maximumRadius;
+}
+
 
 /* private */
 void
 MaximumInscribedCircle::compute()
 {
-
     // check if already computed
     if (done) return;
 
+    /**
+     * Handle flat geometries.
+     */
+    if (inputGeom->getArea() == 0.0) {
+        const CoordinateXY* c = inputGeom->getCoordinate();
+        createResult(*c, *c);
+        return;
+    }
+
+    /**
+     * Optimization for small simple convex polygons
+     */
+    if (ExactMaxInscribedCircle::isSupported(inputGeom)) {
+        auto polygonal = static_cast<const Polygon*>(inputGeom);
+        std::pair<CoordinateXY, CoordinateXY> centreRadius = ExactMaxInscribedCircle::computeRadius(polygonal);
+        createResult(centreRadius.first, centreRadius.second);
+        return;
+    }
+
+    //-- only needed for approximation
+    if (tolerance <= 0) {
+        throw util::IllegalArgumentException("Tolerance must be positive");
+    }
+
+    computeApproximation();
+}
+
+
+/* private */
+void MaximumInscribedCircle::createResult(
+    const CoordinateXY& c, const CoordinateXY& r)
+{
+    centerPt = c;
+    radiusPt = r;
+}
+
+
+/* private */
+void
+MaximumInscribedCircle::computeApproximation()
+{
     // Priority queue of cells, ordered by maximum distance from boundary
     Cell::CellQueue cellQueue;
 
@@ -202,7 +281,7 @@ MaximumInscribedCircle::compute()
             GEOS_CHECK_FOR_INTERRUPTS();
         }
 
-        //-- if cell must be closer than furthest, terminate since all remaining cells in queue are even closer.
+        //-- if cell must be closer than farthest, terminate since all remaining cells in queue are even closer.
         if (cell.getMaxDistance() < farthestCell.getDistance())
             break;
 
@@ -210,6 +289,17 @@ MaximumInscribedCircle::compute()
         if (cell.getDistance() > farthestCell.getDistance()) {
             farthestCell = cell;
         }
+
+        //-- search termination when checking max radius predicate
+        if (maximumRadius >= 0) {
+            //-- found a inside point further than max radius
+            if (farthestCell.getDistance() > maximumRadius)
+                break;
+        //-- no cells can have larger radius
+        if (cell.getMaxDistance() < maximumRadius)
+            break;
+        }
+
         /**
         * Refine this cell if the potential distance improvement
         * is greater than the required tolerance.

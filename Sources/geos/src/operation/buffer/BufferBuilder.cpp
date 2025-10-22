@@ -33,8 +33,8 @@
 #include <geos/operation/buffer/SubgraphDepthLocater.h>
 #include <geos/operation/overlayng/OverlayNG.h>
 #include <geos/operation/overlay/snap/SnapOverlayOp.h>
-#include <geos/operation/overlay/PolygonBuilder.h>
-#include <geos/operation/overlay/OverlayNodeFactory.h>
+#include <geos/operation/buffer/PolygonBuilder.h>
+#include <geos/operation/buffer/BufferNodeFactory.h>
 #include <geos/operation/polygonize/Polygonizer.h>
 #include <geos/operation/union/UnaryUnionOp.h>
 #include <geos/operation/valid/RepeatedPointRemover.h>
@@ -77,7 +77,6 @@ using namespace geos::geom;
 using namespace geos::geomgraph;
 using namespace geos::noding;
 using namespace geos::algorithm;
-using namespace geos::operation::overlay;
 using namespace geos::operation::linemerge;
 
 namespace {
@@ -377,7 +376,7 @@ BufferBuilder::buffer(const Geometry* g, double distance)
         std::vector< std::unique_ptr<Geometry> > geoms_to_delete;
         for ( size_t i=0, n=g->getNumGeometries(); i<n; ++i )
         {
-            // BufferBuilder class cannot be re-used, so
+            // BufferBuilder class cannot be reused, so
             // we create a new one for each subgeom
             BufferBuilder subbuilder(bufParams);
             const Geometry *subgeom = g->getGeometryN(i);
@@ -439,7 +438,7 @@ BufferBuilder::buffer(const Geometry* g, double distance)
     std::vector<BufferSubgraph*> subgraphList;
 
     try {
-        PlanarGraph graph(OverlayNodeFactory::instance());
+        PlanarGraph graph(BufferNodeFactory::instance());
         graph.addEdges(edgeList.getEdges());
 
         GEOS_CHECK_FOR_INTERRUPTS();

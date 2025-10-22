@@ -24,6 +24,7 @@
 #include <geos/io/GeoJSONReader.h>
 #include <geos/io/GeoJSONWriter.h>
 #include <geos/operation/buffer/BufferParameters.h>
+#include <geos/operation/cluster/Clusters.h>
 #include <geos/util/Interrupt.h>
 
 #include <stdexcept>
@@ -40,6 +41,7 @@
 // violations.
 #define GEOSGeometry geos::geom::Geometry
 #define GEOSPreparedGeometry geos::geom::prep::PreparedGeometry
+#define GEOSClusterInfo geos::operation::cluster::Clusters
 #define GEOSCoordSequence geos::geom::CoordinateSequence
 #define GEOSBufferParams geos::operation::buffer::BufferParameters
 #define GEOSSTRtree geos::index::strtree::TemplateSTRtree<void*>
@@ -50,11 +52,19 @@
 #define GEOSGeoJSONReader geos::io::GeoJSONReader
 #define GEOSGeoJSONWriter geos::io::GeoJSONWriter
 
+// Implementation struct for the GEOSCoverageCleanParams object
+typedef struct {
+    double snappingDistance;
+    int    overlapMergeStrategy;
+    double gapMaximumWidth;
+} GEOSCoverageCleanParams;
+
 // Implementation struct for the GEOSMakeValidParams object
 typedef struct {
     int method;
     int keepCollapsed;
 } GEOSMakeValidParams;
+
 
 #include "geos_c.h"
 
@@ -343,6 +353,61 @@ extern "C" {
         return GEOSNearestPoints_r(handle, g1, g2);
     }
 
+    GEOSClusterInfo*
+    GEOSClusterDBSCAN(const GEOSGeometry* g, double eps, unsigned minPoints)
+    {
+        return GEOSClusterDBSCAN_r(handle, g, eps, minPoints);
+    }
+
+    GEOSClusterInfo*
+    GEOSClusterGeometryDistance(const GEOSGeometry* g, double d)
+    {
+        return GEOSClusterGeometryDistance_r(handle, g, d);
+    }
+
+    GEOSClusterInfo*
+    GEOSClusterGeometryIntersects(const GEOSGeometry* g)
+    {
+        return GEOSClusterGeometryIntersects_r(handle, g);
+    }
+
+    GEOSClusterInfo*
+    GEOSClusterEnvelopeDistance(const GEOSGeometry* g, double d)
+    {
+        return GEOSClusterEnvelopeDistance_r(handle, g, d);
+    }
+
+    GEOSClusterInfo*
+    GEOSClusterEnvelopeIntersects(const GEOSGeometry* g)
+    {
+        return GEOSClusterEnvelopeIntersects_r(handle, g);
+    }
+
+    std::size_t GEOSClusterInfo_getNumClusters(const GEOSClusterInfo* clusters)
+    {
+        return GEOSClusterInfo_getNumClusters_r(handle, clusters);
+    }
+
+    std::size_t GEOSClusterInfo_getClusterSize(const GEOSClusterInfo* clusters, size_t i)
+    {
+        return GEOSClusterInfo_getClusterSize_r(handle, clusters, i);
+    }
+
+    const std::size_t* GEOSClusterInfo_getInputsForClusterN(const GEOSClusterInfo* clusters, size_t i)
+    {
+        return GEOSClusterInfo_getInputsForClusterN_r(handle, clusters, i);
+    }
+
+    std::size_t* GEOSClusterInfo_getClustersForInputs(const GEOSClusterInfo* clusters)
+    {
+        return GEOSClusterInfo_getClustersForInputs_r(handle, clusters);
+    }
+
+    void GEOSClusterInfo_destroy(GEOSClusterInfo* info)
+    {
+        GEOSClusterInfo_destroy_r(handle, info);
+    }
+
     Geometry*
     GEOSGeomFromWKT(const char* wkt)
     {
@@ -392,6 +457,12 @@ extern "C" {
     GEOSisSimple(const Geometry* g)
     {
         return GEOSisSimple_r(handle, g);
+    }
+
+    char
+    GEOSisSimpleDetail(const Geometry* g, int returnAllPoints, Geometry** result)
+    {
+        return GEOSisSimpleDetail_r(handle, g, returnAllPoints, result);
     }
 
     char
@@ -656,10 +727,22 @@ extern "C" {
         return GEOSClipByRect_r(handle, g, xmin, ymin, xmax, ymax);
     }
 
+    int
+    GEOSGridIntersectionFractions(const Geometry* g, double xmin, double ymin, double xmax, double ymax,
+                                  unsigned nx, unsigned ny, float* buf)
+    {
+        return GEOSGridIntersectionFractions_r(handle, g, xmin, ymin, xmax, ymax, nx, ny, buf);
+    }
 
     Geometry*
     GEOSGeom_transformXY(const GEOSGeometry* g, GEOSTransformXYCallback callback, void* userdata) {
         return GEOSGeom_transformXY_r(handle, g, callback, userdata);
+    }
+
+
+    Geometry*
+    GEOSGeom_transformXYZ(const GEOSGeometry* g, GEOSTransformXYZCallback callback, void* userdata) {
+        return GEOSGeom_transformXYZ_r(handle, g, callback, userdata);
     }
 
 
@@ -944,6 +1027,60 @@ extern "C" {
         return GEOSMakeValidWithParams_r(handle, g, params);
     }
 
+    GEOSCoverageCleanParams*
+    GEOSCoverageCleanParams_create()
+    {
+        return GEOSCoverageCleanParams_create_r(handle);
+    }
+
+    void
+    GEOSCoverageCleanParams_destroy(
+        GEOSCoverageCleanParams* params)
+    {
+        return GEOSCoverageCleanParams_destroy_r(handle, params);
+    }
+
+    int
+    GEOSCoverageCleanParams_setSnappingDistance(
+        GEOSCoverageCleanParams* params, double snappingDistance)
+    {
+        return GEOSCoverageCleanParams_setSnappingDistance_r(
+            handle, params, snappingDistance);
+    }
+
+    int
+    GEOSCoverageCleanParams_setGapMaximumWidth(
+        GEOSCoverageCleanParams* params, double gapMaximumWidth)
+    {
+        return GEOSCoverageCleanParams_setGapMaximumWidth_r(
+            handle, params, gapMaximumWidth);
+    }
+
+    int
+    GEOSCoverageCleanParams_setOverlapMergeStrategy(
+        GEOSCoverageCleanParams* params, int overlapMergeStrategy)
+    {
+        return GEOSCoverageCleanParams_setOverlapMergeStrategy_r(
+            handle, params, overlapMergeStrategy);
+    }
+
+    GEOSGeometry *
+    GEOSCoverageCleanWithParams(
+        const GEOSGeometry* input,
+        const GEOSCoverageCleanParams* params)
+    {
+        return GEOSCoverageCleanWithParams_r(
+            handle, input, params);
+    }
+
+    GEOSGeometry *
+    GEOSCoverageClean(
+        const GEOSGeometry * input)
+    {
+        return GEOSCoverageClean_r(
+            handle, input);
+    }
+
     Geometry*
     GEOSRemoveRepeatedPoints(
         const Geometry* g,
@@ -1043,6 +1180,12 @@ extern "C" {
     }
 
     CoordinateSequence*
+    GEOSCoordSeq_createWithDimensions(unsigned int size, int hasZ, int hasM)
+    {
+        return GEOSCoordSeq_createWithDimensions_r(handle, size, hasZ, hasM);
+    }
+
+    CoordinateSequence*
     GEOSCoordSeq_copyFromBuffer(const double* buf, unsigned int size, int hasZ, int hasM)
     {
         return GEOSCoordSeq_copyFromBuffer_r(handle, buf, size, hasZ, hasM);
@@ -1066,6 +1209,18 @@ extern "C" {
         return GEOSCoordSeq_copyToArrays_r(handle, s, x, y, z, m);
     }
 
+    char
+    GEOSCoordSeq_hasZ(CoordinateSequence* s)
+    {
+        return GEOSCoordSeq_hasZ_r(handle, s);
+    }
+
+    char
+    GEOSCoordSeq_hasM(CoordinateSequence* s)
+    {
+        return GEOSCoordSeq_hasM_r(handle, s);
+    }
+
     int
     GEOSCoordSeq_setOrdinate(CoordinateSequence* s, unsigned int idx, unsigned int dim, double val)
     {
@@ -1075,19 +1230,25 @@ extern "C" {
     int
     GEOSCoordSeq_setX(CoordinateSequence* s, unsigned int idx, double val)
     {
-        return GEOSCoordSeq_setOrdinate(s, idx, 0, val);
+        return GEOSCoordSeq_setOrdinate(s, idx, CoordinateSequence::X, val);
     }
 
     int
     GEOSCoordSeq_setY(CoordinateSequence* s, unsigned int idx, double val)
     {
-        return GEOSCoordSeq_setOrdinate(s, idx, 1, val);
+        return GEOSCoordSeq_setOrdinate(s, idx, CoordinateSequence::Y, val);
     }
 
     int
     GEOSCoordSeq_setZ(CoordinateSequence* s, unsigned int idx, double val)
     {
-        return GEOSCoordSeq_setOrdinate(s, idx, 2, val);
+        return GEOSCoordSeq_setOrdinate(s, idx, CoordinateSequence::Z, val);
+    }
+
+    int
+    GEOSCoordSeq_setM(CoordinateSequence* s, unsigned int idx, double val)
+    {
+        return GEOSCoordSeq_setOrdinate(s, idx, CoordinateSequence::M, val);
     }
 
     int
@@ -1117,19 +1278,25 @@ extern "C" {
     int
     GEOSCoordSeq_getX(const CoordinateSequence* s, unsigned int idx, double* val)
     {
-        return GEOSCoordSeq_getOrdinate(s, idx, 0, val);
+        return GEOSCoordSeq_getOrdinate(s, idx, CoordinateSequence::X, val);
     }
 
     int
     GEOSCoordSeq_getY(const CoordinateSequence* s, unsigned int idx, double* val)
     {
-        return GEOSCoordSeq_getOrdinate(s, idx, 1, val);
+        return GEOSCoordSeq_getOrdinate(s, idx, CoordinateSequence::Y, val);
     }
 
     int
     GEOSCoordSeq_getZ(const CoordinateSequence* s, unsigned int idx, double* val)
     {
-        return GEOSCoordSeq_getOrdinate(s, idx, 2, val);
+        return GEOSCoordSeq_getOrdinate(s, idx, CoordinateSequence::Z, val);
+    }
+
+    int
+    GEOSCoordSeq_getM(const CoordinateSequence* s, unsigned int idx, double* val)
+    {
+        return GEOSCoordSeq_getOrdinate(s, idx, CoordinateSequence::M, val);
     }
 
     int
@@ -1512,6 +1679,18 @@ extern "C" {
     GEOSGeoJSONWriter_writeGeometry(GEOSGeoJSONWriter* writer, const GEOSGeometry* g, int indent)
     {
         return GEOSGeoJSONWriter_writeGeometry_r(handle, writer, g, indent);
+    }
+
+    void
+    GEOSGeoJSONWriter_setOutputDimension(GeoJSONWriter* writer, int dim)
+    {
+        GEOSGeoJSONWriter_setOutputDimension_r(handle, writer, dim);
+    }
+
+    int
+    GEOSGeoJSONWriter_getOutputDimension(GeoJSONWriter* writer)
+    {
+        return GEOSGeoJSONWriter_getOutputDimension_r(handle, writer);
     }
 
 

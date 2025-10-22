@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'geos'
-  s.version = '9.0.0'
+  s.version = '10.0.0'
   s.summary = 'GEOS (Geometry Engine - Open Source) is a C++ port of the Java Topology Suite (JTS).'
   s.homepage = 'http://trac.osgeo.org/geos'
   s.license = {
@@ -29,5 +29,6 @@ Pod::Spec.new do |s|
     'CLANG_WARN_DOCUMENTATION_COMMENTS' => 'NO',
     'CLANG_WARN_UNREACHABLE_CODE' => 'NO',
     'GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS' => 'NO',
+    'CLANG_CXX_LANGUAGE_STANDARD' => 'c++17',
   }
 end

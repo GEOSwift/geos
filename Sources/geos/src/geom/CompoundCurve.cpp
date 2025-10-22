@@ -12,6 +12,8 @@
  *
  **********************************************************************/
 
+#include <sstream>
+
 #include <geos/geom/CompoundCurve.h>
 #include <geos/geom/CoordinateFilter.h>
 #include <geos/geom/GeometryFactory.h>
@@ -25,7 +27,9 @@ CompoundCurve::CompoundCurve(std::vector<std::unique_ptr<SimpleCurve>>&& p_curve
                              const GeometryFactory& gf)
     : Curve(gf),
       curves(std::move(p_curves)),
-      envelope(computeEnvelopeInternal()) {}
+      envelope(computeEnvelopeInternal()) {
+    validateConstruction();
+}
 
 CompoundCurve::CompoundCurve(const CompoundCurve& other)
     : Curve(other),
@@ -305,6 +309,31 @@ CompoundCurve::reverseImpl() const
     });
 
     return getFactory()->createCompoundCurve(std::move(reversed)).release();
+}
+
+void
+CompoundCurve::validateConstruction() const
+{
+    for (std::size_t i = 0; i < curves.size(); i++) {
+        if (curves[i]->isEmpty()) {
+            std::ostringstream ss;
+            ss << "Section " << i << " of CompoundCurve is empty";
+            throw util::IllegalArgumentException(ss.str());
+        }
+    }
+    for (std::size_t i = 1; i < curves.size(); i++) {
+        const CoordinateXY& end = curves[i-1]->getCoordinatesRO()->back<CoordinateXY>();
+        const CoordinateXY& start = curves[i]->getCoordinatesRO()->front<CoordinateXY>();
+
+        if (start != end) {
+            std::ostringstream ss;
+            ss << "Sections of CompoundCurve are not contiguous: " <<
+                   "curve " << (i-1) << " ends at " << end <<
+                   " ; curve " << i << " begins at " << start;
+
+            throw util::IllegalArgumentException(ss.str());
+        }
+    }
 }
 
 }

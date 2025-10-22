@@ -24,9 +24,6 @@ class Geometry;
 }
 }
 
-using geos::geom::Geometry;
-using geos::index::strtree::TemplateSTRtree;
-
 namespace geos {      // geos
 namespace coverage { // geos::coverage
 
@@ -63,6 +60,9 @@ namespace coverage { // geos::coverage
  *
  */
 class GEOS_DLL CoverageValidator {
+    using Geometry = geos::geom::Geometry;
+    template <typename ItemType>
+    using TemplateSTRtree = geos::index::strtree::TemplateSTRtree<ItemType>;
 
 private:
 
@@ -114,6 +114,18 @@ public:
     */
     static bool isValid(
         std::vector<const Geometry*>& coverage);
+
+    /**
+    * Tests whether a polygonal coverage is valid
+    * and contains no gaps narrower than a specified width.
+    *
+    * @param coverage an array of polygons forming a coverage
+    * @param gapWidth the maximum width of invalid gaps
+    * @return true if the coverage is valid with no narrow gaps
+    */
+    static bool isValid(
+        std::vector<const Geometry*>& coverage,
+        double gapWidth);
 
     /**
     * Tests if some element of an array of geometries is a coverage invalidity
