@@ -21,7 +21,7 @@ at least controversial. Use of geos without dynamic linking is discouraged.
 
 ## Upstream Version
 
-GEOSwift/geos 10.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.14.0
+GEOSwift/geos 10.0.1 packages [libgeos/geos](https://github.com/libgeos/geos) 3.14.0
 
 ## Installing with CocoaPods
 
@@ -36,7 +36,7 @@ GEOSwift/geos 10.0.0 packages [libgeos/geos](https://github.com/libgeos/geos) 3.
 
 1. Update the top-level dependencies in your `Package.swift` to include:
 
-        .package(url: "https://github.com/GEOSwift/geos.git", from: "10.0.0")
+        .package(url: "https://github.com/GEOSwift/geos.git", from: "10.0.1")
 
 2. Update the target dependencies in your `Package.swift` to include
 
