@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "geos",
-    platforms: [.iOS(.v12), .macOS(.v10_13), .tvOS(.v12), .watchOS(.v4)],
+    platforms: [.iOS(.v12), .macOS(.v10_13), .tvOS(.v12), .watchOS(.v4), .visionOS(.v1)],
     products: [
         .library(
             name: "geos",
