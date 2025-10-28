@@ -9,24 +9,41 @@ This library is an SPM-compatible repackaging of the source code from [libgeos/g
 > [Shapely](https://pypi.org/project/Shapely/) package for Python, the
 > [sf](https://github.com/r-spatial/sf) package for R, and others.
 
+## Requirements
+
+- Swift 5.9+
+- iOS 12.0+ / macOS 10.13+ / tvOS 12.0+ / watchOS 4.0+ / visionOS 1.0+
+- Linux
+
 ## Usage
 
-Swift Package Manager (SPM):
+### Swift Package Manager (SPM)
+
+Add the following to your `Package.swift`:
 
 ```swift
-// Include in your package dependencies
-[
-    // ...
-    .package(url: "https://github.com/GEOSwift/geos.git", from: "11.0.0"),
-    // ...
-]
+let package = Package(
+    name: "YourPackage",
+    dependencies: [
+        .package(url: "https://github.com/GEOSwift/geos.git", from: "11.0.0")
+    ],
+    targets: [
+        .target(
+            name: "YourTarget",
+            dependencies: [
+                .product(name: "geos", package: "geos")
+            ]
+        )
+    ]
+)
+```
 
-// Include in your target dependencies
-[
-    // ...
-    "geos"
-    // ...
-]
+### Basic Usage
+
+```swift
+import geos
+
+// The geos C API is now available for use
 ```
 
 > [!NOTE]
